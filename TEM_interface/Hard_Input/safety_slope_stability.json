@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "key": "supply_commissioning_installation_training_maintenance_1st_year_warranty_period",
+    "Description": "Supply, Commissioning, Installation, Training, Maintenance - (1st year - warranty period)",
+    "Unit": "INR Cr",
+    "Value": "7.35",
+    "Basis": "MSR250 System"
+  },
+  {
+    "id": 2,
+    "key": "comprehensive_annual_maintenance_contract_2nd_year",
+    "Description": "Comprehensive Annual Maintenance Contract 2nd year",
+    "Unit": "INR Cr",
+    "Value": "0.65",
+    "Basis": ""
+  },
+  {
+    "id": 3,
+    "key": "annual_increment",
+    "Description": "Annual Increment",
+    "Unit": "%",
+    "Value": "10.0%",
+    "Basis": ""
+  }
+]

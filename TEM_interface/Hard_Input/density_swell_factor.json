@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "key": "average_density_of_coal",
+    "Description": "Average density of Coal",
+    "Unit": "t/cum",
+    "Value": "1.7",
+    "Basis": "In-situ Density"
+  },
+  {
+    "id": 2,
+    "key": "average_density_of_waste",
+    "Description": "Average density of Waste",
+    "Unit": "t/cum",
+    "Value": "2.1",
+    "Basis": "In-situ Density"
+  },
+  {
+    "id": 3,
+    "key": "swell_factor_for_coal",
+    "Description": "Swell factor for Coal",
+    "Unit": "%",
+    "Value": "20%",
+    "Basis": ""
+  },
+  {
+    "id": 4,
+    "key": "swell_factor_for_waste",
+    "Description": "Swell factor for Waste",
+    "Unit": "%",
+    "Value": "20%",
+    "Basis": ""
+  }
+]

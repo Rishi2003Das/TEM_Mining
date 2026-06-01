@@ -1,0 +1,853 @@
+
+================================================================================
+  TEM FORMULA REFERENCE DOCUMENT
+  File: Option 3_15 Mtpa_rev1_smg opt2 quality.xlsx
+  Scope: Assumptions Dashboard – Interlinked Formulas for:
+         1. CAPEX (Owner & Others)
+         2. OPEX (Owner & LOM)
+         3. Government Fees & Taxes
+================================================================================
+  Generated: 2026-06-01
+  Purpose:   Formula dependency mapping for web-app backend translation.
+             Each formula references back to the exact Excel cell and sheet.
+================================================================================
+
+
+========== GUIDE LEGEND ==========
+
+Cell Color in Excel → Meaning:
+  Blue   = Links to another tab (cross-sheet reference)
+  Red    = Hard Input (admin-editable value)
+  Black  = Calculation using links from current tab
+  Pink   = Links to external file
+  Green  = Calculation using Named Values / Arrays
+  Grey   = Not required / No data
+
+Tab Color → Sheet Category:
+  Yellow = Title, Revision History, Disclaimer, Guide
+  Purple = Charts (output dashboards)
+  Red    = Summary sheets
+  Green  = Inputs / Quotes (Admin-editable)
+  Blue   = Calculation sheets (do NOT manually type)
+
+Mining Operation Switch (Assumptions_Dashboard!L4):
+  "Departmental" = Owner operates all mining (no MDO)
+  "MDO"          = Mine Developer Operator model (outsourced)
+
+Pre-Tax / Pre-Finance Switch (Assumptions_Dashboard!L6):
+  "Yes" = Pre-Tax, Pre-Finance basis
+  "No"  = Full model with debt and tax
+
+================================================================================
+SECTION 1 – CAPEX (OWNER) — Initial Capital Costs
+================================================================================
+
+Source Sheet: Assumptions_Dashboard (Summary Table, Cols J–N, Rows 13–30)
+Backed by:    Owner CAPEX sheet (rows 11–26)
+
+---- Overview Table on Assumptions_Dashboard ----
+
+Cell J13  : LABEL  "Initial Capital Costs (Owner)"
+Cell J14  : Header "Sl No" | K14: "List" | L14: "Unit" | M14: "Total" | N14: "%"
+
+Row J15–J29 : Serial numbers (auto-incremented: =J15+1, etc.)
+Row K15–K29 : Line item labels → pulled directly from 'Owner CAPEX' col B:
+  K15 = ='Owner CAPEX'!B11  → "Pre-operative costs"
+  K16 = ='Owner CAPEX'!B12  → "Upfront Amount"
+  K17 = ='Owner CAPEX'!B13  → "Land Cost"
+  K18 = ='Owner CAPEX'!B14  → "R&R Cost"
+  K19 = ='Owner CAPEX'!B15  → "HEMM Equipment"
+  K20 = ='Owner CAPEX'!B16  → "CHP"
+  K21 = ='Owner CAPEX'!B17  → "Railway Siding"
+  K22 = ='Owner CAPEX'!B18  → "Civil Infrastructure"
+  K23 = ='Owner CAPEX'!B19  → "Fire Fighting & Dust Suppression"
+  K24 = ='Owner CAPEX'!B20  → "Workshop and Store" (='Project CAPEX'!B20)
+  K25 = ='Owner CAPEX'!B21  → "Electrical"
+  K26 = ='Owner CAPEX'!B22  → "Mine Dewatering System"
+  K27 = ='Owner CAPEX'!B23  → "Digitalisation"
+  K28 = ='Owner CAPEX'!B24  → "Contingency"
+  K29 = ='Owner CAPEX'!B25  → "IDC (Interest During Construction)"
+
+Row L15–L29 : Unit = "INR Cr" (static label)
+
+Row M15–M29 : VALUES pulled from 'Owner CAPEX' col D (LOM totals):
+  M15 = ='Owner CAPEX'!D11   [Pre-operative costs total]
+  M16 = ='Owner CAPEX'!D12   [Upfront Amount total]
+  M17 = ='Owner CAPEX'!D13   [Land Cost total]
+  M18 = ='Owner CAPEX'!D14   [R&R Cost total]
+  M19 = ='Owner CAPEX'!D15   [HEMM Equipment total]
+  M20 = ='Owner CAPEX'!D16   [CHP total]
+  M21 = ='Owner CAPEX'!D17   [Railway Siding total]
+  M22 = ='Owner CAPEX'!D18   [Civil Infrastructure total]
+  M23 = ='Owner CAPEX'!D19   [Fire Fighting & Dust Suppression total]
+  M24 = ='Owner CAPEX'!D20   [Workshop and Store total]
+  M25 = ='Owner CAPEX'!D21   [Electrical total]
+  M26 = ='Owner CAPEX'!D22   [Mine Dewatering System total]
+  M27 = ='Owner CAPEX'!D23   [Digitalisation total]
+  M28 = ='Owner CAPEX'!D24   [Contingency total]
+  M29 = ='Owner CAPEX'!D25   [IDC total]
+
+Row N15–N29 : Percentage of total:
+  N15 = =M15/$M$30
+  N16 = =M16/$M$30
+  ... (same pattern for all rows, dividing each item by M30)
+
+Cell K30  : "Total Initial Capital Expenditure"
+Cell L30  : "INR Cr"
+Cell M30  : =SUM(M15:M29)   ← GRAND TOTAL of Owner Initial CAPEX
+
+---- Assumptions_Dashboard CAPEX Summary (compact, cols K-L, rows 78–90) ----
+
+K78: "Initial Capital Costs (Owner)"  | L78: "INR Cr"
+K79: "Pre-operative"                  | L79: =M15+M16
+     [Pre-operative costs + Upfront Amount]
+K80: "Land and R&R"                   | L80: =M17+M18
+     [Land Cost + R&R Cost]
+K81: "HEMM"                           | L81: =M19
+     [HEMM Equipment]
+K82: "CHP and Infrastructure"         | L82: =M20+M22+M24+M23
+     [CHP + Civil Infrastructure + Workshop and Store + Fire Fighting]
+K83: "Railway Siding"                 | L83: =M21
+K84: "Others"                         | L84: =M26+M27+M25+M29
+     [Mine Dewatering + Digitalisation + Electrical + IDC]
+K85: "Contingency"                    | L85: =M28
+K90: "Total"                          | L90: =SUM(L79:L89)
+
+---- Sub-breakdown of "Others" (K94–K106) ----
+
+K94:  "Others"      | L94: "INR Cr"
+K95:  "Electrical"  | L95:  =M25   [='Owner CAPEX'!D21]
+K96:  "Mine Dewatering System" | L96: =M26  [='Owner CAPEX'!D22]
+K97:  "Digitalisation"         | L97: =M27  [='Owner CAPEX'!D23]
+K98:  "IDC"                    | L98: =M29  [='Owner CAPEX'!D25]
+K106: "Total"       | L106: =SUM(L95:L105)
+
+
+================================================================================
+SECTION 2 – CAPEX (OWNER) — Year-by-Year Formulas in Owner CAPEX Sheet
+================================================================================
+
+Sheet: Owner CAPEX
+Structure: Rows = Line Items; Col D = LOM Total; Col E onward = Year-by-Year
+
+---- Initial CAPEX (rows 11–26) ----
+
+B11: Pre-operative costs | C11: INR Cr | D11: =+SUM(E11:AR11)
+  [Each year column E–AR reads from 'Pre-Operative' sheet]
+
+B12: Upfront Amount      | D12: =+SUM(E12:AR12)
+  [Year-specific upfront payment schedule]
+
+B13: Land Cost           | D13: =+SUM(E13:AR13)
+  [Reads from 'Land' sheet yearly values]
+
+B14: R&R Cost            | D14: =+SUM(E14:AR14)
+  [Reads from 'R&R' sheet yearly values]
+
+B15: HEMM Equipment      | D15: =+SUM(E15:AR15)
+  [Conditional on mining method:
+   =IF(Assumptions_Dashboard!$L$4="Departmental",'Capex Breakups'!ExY, 0)
+   where Y = row corresponding to HEMM in Capex Breakups sheet]
+
+B16: CHP                 | D16: =+SUM(E16:AR16)
+  [Reads from 'Capex Breakups' sheet]
+
+B17: Railway Siding      | D17: =+SUM(E17:AR17)
+  [Reads from 'Capex Breakups' sheet]
+
+B18: Civil Infrastructure| D18: =+SUM(E18:AR18)
+  [Reads from 'Capex Breakups' sheet]
+
+B19: Fire Fighting & Dust Suppression | D19: =+SUM(E19:AR19)
+  E19 = ='Capex Breakups'!E7  [each year reads Capex Breakups!ExN]
+
+B20: Workshop and Store  | D20: =+SUM(E20:AR20)
+  E20 = =IF(Assumptions_Dashboard!$L$4="Departmental",'Capex Breakups'!E8,0)
+  [CONDITIONAL: Only included if Departmental mining mode]
+
+B21: Electrical          | D21: =+SUM(E21:AR21)
+  E21 = ='Capex Breakups'!E9   [unconditional, always included]
+
+B22: Mine Dewatering     | D22: =+SUM(E22:AR22)
+  E22 = =IF(Assumptions_Dashboard!$L$4="Departmental",'Capex Breakups'!E10,0)
+  [CONDITIONAL: Only if Departmental]
+
+B23: Digitalisation      | D23: =+SUM(E23:AR23)
+  E23 = ='Capex Breakups'!E11  [unconditional]
+
+B24: Contingency         | D24: =+SUM(E24:AR24)
+  E24 = =SUM(E11,E13:E23) * Assumptions_Dashboard!$D$100
+  [15% contingency on all items except Upfront Amount;
+   Rate source: Assumptions_Dashboard!D100 = 0.15 (Hard Input)]
+
+B25: IDC                 | D25: =+SUM(E25:AR25)
+  E25 = ='Borrowings-Owner'!G96
+  [Interest During Construction → from Borrowings-Owner sheet]
+
+B26: Total Initial Capital Expenditure
+  D26 = =SUM(D11:D25)
+  Ex  = =SUM(Ex11:Ex25)  for each year column x
+
+---- Sustaining CAPEX (rows 31–39) ----
+
+B31: Mining Equipment Replacement  | D31: =+SUM(E31:AR31)
+  E31 = =IF(Assumptions_Dashboard!$L$4=Assumptions_Dashboard!$M$5,(Fleet!G413),0)
+  [CONDITIONAL: Only if Departmental; pulls from Fleet sheet scheduled replacements]
+
+B32: CHP (Sustaining)   | D32: =+SUM(E32:AR32)
+  P32 = =$D$16 * Assumptions_Dashboard!$D$117
+  [CHP total cost × CHP Sustaining Capital Rate (3%); only in specific years]
+  Rate: Assumptions_Dashboard!D117 = 0.03 (Hard Input)
+
+B33: Civil Infrastructure (Sustaining) | D33: =+SUM(E33:AR33)
+  R33 = =$D$18 * Assumptions_Dashboard!$D$118
+  [Civil Infra cost × Civil Infra Sustaining Capital Rate (3.5%)]
+  Rate: Assumptions_Dashboard!D118 = 0.035 (Hard Input)
+
+B34–B37: Other sustaining items (Electrical, Mine Dewatering, etc.)
+  [Structure: =+SUM(Ex:ARx) for each]
+
+B38: Contingency (Sustaining) | D38: =+SUM(E38:AR38)
+  E38 = =SUM(E31:E37) * Assumptions_Dashboard!$D$100
+  [15% contingency on sustaining items]
+
+B39: Total Sustaining Capital Expenditure
+  D39 = =+SUM(E39:AN39)
+  E39 = =SUM(E31:E38)
+
+B41: TOTAL CAPITAL EXPENDITURE (Owner)
+  D41 = =+SUM(E41:AN41)
+  E41 = =SUM(E26, E39)   [Initial + Sustaining for each year]
+
+
+================================================================================
+SECTION 3 – CAPEX (OTHERS / MDO) — MDO CAPEX Sheet
+================================================================================
+
+Sheet: MDO CAPEX
+Applies when: Assumptions_Dashboard!L4 = "MDO"
+
+---- Initial CAPEX ----
+
+B11: HEMM Equipment       | D11: =+SUM(E11:AR11)
+B12: Civil Infrastructure | D12: =+SUM(E12:AR12)
+B13: Fire Fighting & Dust Suppression | D13: =+SUM(E13:AR13)
+B14: Workshop and Store (=Owner CAPEX!B20) | D14: =+SUM(E14:AR14)
+B15: Electrical           | D15: =+SUM(E15:AR15)
+B16: Mine Dewatering System | D16: =+SUM(E16:AR16)
+B17: Digitalization       | D17: =+SUM(E17:AR17)
+B18: Contingency          | D18: =+SUM(E18:AR18)
+  [E18 = SUM(E11:E17) × Assumptions_Dashboard!D100  → 15% contingency]
+B19: IDC                  | D19: =+SUM(E19:AR19)
+  [='Borrowings-MDO'!corresponding_IDC_row]
+
+B20: Total Initial Capital Expenditure (MDO)
+  D20 = =SUM(D11:D19)
+
+---- Sustaining CAPEX (MDO) ----
+
+B25: Mining Equipment Replacement | D25: =+SUM(E25:AR25)
+B26–B30: Civil Infrastructure, Workshop, Electrical, Mine Dewatering, Digitalization
+B31: Contingency  | D31: =+SUM(E31:AR31)
+
+B32: Total Sustaining Capital Expenditure (MDO)
+  D32 = =+SUM(E32:AN32)
+
+B34: Total Capital Expenditure (MDO)
+  D34 = =+SUM(E34:AN34)
+  [D34 = D20 + D32 implicitly via year-by-year sums]
+
+
+================================================================================
+SECTION 4 – CAPEX COMBINED — Project CAPEX Sheet
+================================================================================
+
+Sheet: Project CAPEX
+Purpose: Combines Owner CAPEX + MDO CAPEX into one project-level view
+
+Structure mirrors Owner CAPEX (same row labels, same calculation pattern).
+Key difference: each year cell checks whether to include MDO or Owner values
+based on the mining operation switch.
+
+B26: Total Initial Capital Expenditure (Project)
+  D26 = =SUM(D11:D25)
+
+B39: Total Sustaining Capital Expenditure (Project)
+  D39 = =+SUM(E39:AN39)
+
+B41: Total Capital Expenditure (Project) ← PRIMARY OUTPUT
+  D41 = =+SUM(E41:AN41)
+  Verification check at D43:
+  ='Owner CAPEX'!D41 + 'MDO CAPEX'!D34 = D41
+
+Key inputs driving CAPEX:
+  Assumptions_Dashboard!D100 = Capital cost contingency % (0.15 = 15%)
+  Assumptions_Dashboard!D117 = CHP Sustaining Capital % (0.03 = 3%)
+  Assumptions_Dashboard!D118 = Civil Infra Sustaining Capital % (0.035 = 3.5%)
+  Assumptions_Dashboard!L4   = Mining Operation type ("Departmental" / "MDO")
+
+
+================================================================================
+SECTION 5 – OPEX (OWNER) — Owner OPEX Sheet
+================================================================================
+
+Sheet: Owner OPEX
+Structure: Rows = Cost line items; Col D = LOM Total; Col E+ = Year-by-Year
+
+---- HEMM Consumables (rows 55–61) ----
+
+B55: HEMM Consumables [Header]
+B56: Diesel            | D56: =SUM(E56:AR56)
+  [Year formula: derived from Equipment Op Cost sheet via diesel consumption
+   × diesel price (Assumptions_Dashboard!D101) with escalation]
+  Key input: Assumptions_Dashboard!D101 = Base diesel cost (INR/lit) = 95
+
+B57: Lubrication       | D57: =SUM(E57:AR57)
+B58: HEMM Spares       | D58: =SUM(E58:AR58)
+B59: Tyres             | D59: =SUM(E59:AR59)
+B60: CHP               | D60: =SUM(E60:AR60)
+B61: Power             | D61: =SUM(E61:AR61)
+  Key input: Assumptions_Dashboard!D102 = Power Charge (INR/KVAh) = 7.4
+
+---- Owner Mining Costs (rows 62–74) ----
+
+B62: Owner Wage        | D62: =SUM(E62:AR62)
+  [Derived from Wage-Owner sheet, which uses:
+   Assumptions_Dashboard!D103 = Owner persons for facility (0.5)
+   Assumptions_Dashboard!D104 = Per Person Cost (15,000 INR)
+   Grade-wise CTC rates in Assumptions_Dashboard rows 38–47]
+
+B63: Explosives        | D63: =SUM(E63:AR63)
+  E63 = =IF(Assumptions_Dashboard!$L$4=Assumptions_Dashboard!$M$5, Explosive!F45, 0)
+  [CONDITIONAL: Only if Departmental (non-MDO); from Explosive sheet]
+
+B64: Civil Infrastructure Maintenance | D64: =SUM(E64:AR64)
+  [Civil Infra initial cost × Maintenance % (Assumptions_Dashboard!D108 = 2.5%)]
+
+B65: Railway Track & Siding Maintenance | D65: =SUM(E65:AR65)
+  [Railway Siding initial cost × Maintenance %]
+
+B66: Fire Fighting & Dust Suppression  | D66: =SUM(E66:AR66)
+
+B67: Rehandling        | D67: =SUM(E67:AR67)
+  E67 = =IF(Assumptions_Dashboard!$L$4=Assumptions_Dashboard!$M$5, 'Contractor OPEX'!E18, 0)
+  [CONDITIONAL: Only if Departmental (not MDO)]
+
+B68: Digitalisation (AMC)  | D68: =SUM(E68:AR68)
+  [AMC rate from Assumptions_Dashboard!D111 = 3.5% of initial Digitalisation CAPEX]
+
+B69: Environment Management & OHS Costs | D69: =SUM(E69:AR69)
+  [Assumptions_Dashboard!D97 = ENV Mgmt cost (INR Cr) prorated to 15 Mtpa scale]
+
+B70: Other Misc.       | D70: =SUM(E70:AR70)
+
+B71: Admin and Overhead | D71: =SUM(E71:AR71)
+  E71 = Assumptions_Dashboard!$D$96 * 'Owner OPEX'!E5 / 10
+  [Admin cost rate (INR/t) × Annual coal production / 10 (unit conversion to Cr)]
+  Key input: Assumptions_Dashboard!D96 = Administrative Cost (INR/t) = 15
+
+B72: R&R               | D72: =SUM(E72:AR72)
+  [Currently 0 in model; placeholder for Resettlement & Rehabilitation costs]
+
+B73: Contingency       | D73: =SUM(E73:AR73)
+  E73 = =SUM(E56:E72) * Assumptions_Dashboard!$D$99
+  [15% contingency on all Owner OPEX items]
+  Key input: Assumptions_Dashboard!D99 = Operating cost contingency % = 0.15
+
+B74: Sub Total (Owner OPEX before Govt Fees)
+  D74: =SUM(E74:AR74)
+  E74: =SUM(E56:E73)
+
+---- Government Fees in Owner OPEX (rows 75–85) ----
+
+B75: Govt. Fees and charges [Header]
+  D75: =SUM(E75:AR75)
+
+B76: Revenue Sharing   | D76: =SUM(E76:AR76)
+  E76: =Government!E18   [Final Revenue Sharing from Government sheet]
+
+B77: GST on Revenue Sharing | D77: =SUM(E77:AR77)
+  E77: =Government!E19   [GST on Revenue Sharing from Government sheet]
+
+B78: Royalty           | D78: =SUM(E78:AR78)
+  E78: =Government!E20   [Royalty from Government sheet]
+
+B79: DMF               | D79: =SUM(E79:AR79)
+  E79: =Government!E21
+
+B80: NMET              | D80: =SUM(E80:AR80)
+  E80: =Government!E22
+
+B81: Surface Rent      | D81: =SUM(E81:AR81)
+  E81: =Government!E24
+
+B82: GST on Royalty, DMF, NMET | D82: =SUM(E82:AR82)
+  E82: =Government!E30
+
+B83: Progressive Mine Closure Costs | D83: =SUM(E83:AR83)
+  E83: =Government!E35
+
+B84: Bank Fee on PBG   | D84: =SUM(E84:AR84)
+  [Performance Bank Guarantee fee; linked to Borrowings/CF sheet]
+
+B85: Sub Total (Govt Fees)
+  D85: =SUM(E85:AR85)
+  E85: =SUM(E76:E84)
+
+---- Transportation (rows 87–91) ----
+
+B88: Coal Transport (Railway) | D88: =SUM(E88:AR88)
+B89: Coal Transport (Road)    | D89: =SUM(E89:AR89)
+B90: Contingency              | D90: =SUM(E90:AR90)
+B91: Sub Total                | D91: =SUM(E91:AR91)
+  E91: =SUM(E88:E90)
+
+B92: Grand Total (Owner OPEX) = D92: =SUM(E92:AN92)
+  E92: =SUM(E74, E85, E91)
+  [= Mining costs + Govt fees + Transportation, each year]
+
+
+================================================================================
+SECTION 6 – OPEX (LOM / Project-Level) — Project OPEX Sheet
+================================================================================
+
+Sheet: Project OPEX
+Purpose: Consolidates Owner + MDO contractor costs into one project view
+
+---- MDO / Contractor Cost ----
+
+B59: MDO/ Contractor Cost | D59: =SUM(E59:AR59)
+  E59: =IF(Assumptions_Dashboard!$L$4="MDO", 'Contractor OPEX'!E20, 0)
+  [CONDITIONAL: Only included when MDO mode selected]
+
+---- HEMM Consumables (Project) ----
+
+B61: Diesel      | E61: =IF(Assumptions_Dashboard!$L$4="MDO", 0, 'Owner OPEX'!E56)
+B62: Lubrication | E62: =IF(Assumptions_Dashboard!$L$4="MDO", 0, 'Owner OPEX'!E57)
+B63: HEMM Spares | E63: =IF(Assumptions_Dashboard!$L$4="MDO", 0, 'Owner OPEX'!E58)
+B64: Tyres       | E64: =IF(Assumptions_Dashboard!$L$4="MDO", 0, 'Owner OPEX'!E59)
+B65: CHP         | E65: =IFERROR('Owner OPEX'!E60, 0)
+B66: Power       | E66: =IFERROR('Owner OPEX'!E61, 0)
+B67: Sub Total   | E67: =SUM(E61:E66)
+
+---- Owner Mining Costs (Project) ----
+
+B69: Owner Wage  | E69: =IFERROR('Owner OPEX'!E62, 0)
+B70: Explosives  | E70: =IF(Assumptions_Dashboard!$L$4="MDO", 0, 'Owner OPEX'!E63)
+B71: Civil Infrastructure Maintenance | E71: =IFERROR('Owner OPEX'!E64, 0)
+B72: Railway Track & Siding           | E72: =IFERROR('Owner OPEX'!E65, 0)
+B73: Fire Fighting & Dust Suppression | E73: =IFERROR('Owner OPEX'!E66, 0)
+B74: Rehandling  | E74: =IF(Assumptions_Dashboard!$L$4="MDO", 0, 'Contractor OPEX'!E18)
+B75: Digitalization (AMC)             | E75: =IFERROR('Owner OPEX'!E68, 0)
+B76: Environment Management & OHS     | E76: =IFERROR('Owner OPEX'!E69, 0)
+B77: Canteen/Accommodation etc.       | E77: =IFERROR('Owner OPEX'!E70, 0)
+B78: Admin and Overhead               | E78: =IFERROR('Owner OPEX'!E71, 0)
+B79: R&R                              | E79: =IFERROR('Owner OPEX'!E72, 0)
+B80: Contingency | E80: =SUM(E61:E66, E69:E79) * Assumptions_Dashboard!$D$99
+                 [15% of all OPEX items above]
+
+---- Government Fees (Project OPEX – mirrors Owner OPEX) ----
+
+B83: Revenue Sharing         | E83: ='Owner OPEX'!E76
+B84: GST on Revenue Sharing  | E84: ='Owner OPEX'!E77
+B85: Royalty                 | E85: ='Owner OPEX'!E78
+B86: DMF                     | E86: ='Owner OPEX'!E79
+B87: NMET                    | E87: ='Owner OPEX'!E80
+B88: Surface Rent            | E88: ='Owner OPEX'!E81
+B89: GST on Royalty, DMF etc | E89: ='Owner OPEX'!E82
+B90: Progressive Mine Closure| E90: ='Owner OPEX'!E83
+B91: Bank Fee on PBG         | E91: ='Owner OPEX'!E84
+B92: Sub Total               | E92: =SUM(E83:E91)
+
+---- LOM Summary on Assumptions_Dashboard (P-column table) ----
+
+Column P: Serial number (auto-increment)
+Column Q: OPEX line item name (pulled from 'Project OPEX' col B)
+Column R: Unit (INR/t)
+Column S: Total value (LOM weighted average INR/t)
+
+Key LOM OPEX rows (Assumptions_Dashboard, col S):
+S4  = ='Project OPEX'!D13   [MDO/Contractor Cost, INR/t LOM average]
+S6  = =SUM('Project OPEX'!D15:D18)  [HEMM Consumable subtotal]
+S7  = ='Project OPEX'!D19   [CHP, INR/t]
+S8  = ='Project OPEX'!D20   [Power, INR/t]
+S9  = ='Project OPEX'!D23   [Owner Wage, INR/t]
+S10 = ='Project OPEX'!D24   [Explosives, INR/t]
+S11 = ='Project OPEX'!D25   [Civil Infrastructure Maintenance, INR/t]
+S12 = ='Project OPEX'!D26   [Railway Track & Siding, INR/t]
+S13 = ='Project OPEX'!D27   [Fire Fighting & Dust Suppression, INR/t]
+S14 = ='Project OPEX'!D28   [Rehandling, INR/t]
+S16 = ='Project OPEX'!D30   [Environment Management & OHS, INR/t]
+S17 = ='Project OPEX'!D31   [Canteen/Accommodation, INR/t]
+S18 = ='Project OPEX'!D32   [Admin and Overhead, INR/t]
+S19 = ='Project OPEX'!D33   [R&R, INR/t]
+S20 = ='Project OPEX'!D34   [Contingency, INR/t]
+S21 = =SUM(S6:S20)          [Owner OPEX Sub Total, INR/t]
+
+S23 = ='Project OPEX'!D37   [Revenue Sharing, INR/t]
+S24 = ='Project OPEX'!D38   [GST on Revenue Sharing, INR/t]
+S25 = ='Project OPEX'!D39   [Royalty, INR/t]
+S26 = ='Project OPEX'!D40   [DMF, INR/t]
+S27 = ='Project OPEX'!D41   [NMET, INR/t]
+S28 = ='Project OPEX'!D42   [Surface Rent, INR/t]
+S29 = ='Project OPEX'!D43   [GST on Royalty etc, INR/t]
+S30 = ='Project OPEX'!D44   [Progressive Mine Closure, INR/t]
+S31 = ='Project OPEX'!D45   [Bank Fee on PBG, INR/t]
+S32 = =SUM(S23:S31)         [Govt Fees Sub Total, INR/t]
+
+S33 = =S4 + S21 + S32       [Grand Total OPEX, INR/t]
+S34 = ='Project OPEX'!D54   [Grand Total OPEX in INR/kcal]
+
+Grand Total OPEX (Project OPEX):
+D100 = =SUM(E100:AN100)
+D53  = =SUM(D13, D21, D35, D46, D52)  [Weighted avg INR/t]
+D54  = =IFERROR(D53/D6, 0)             [Weighted avg INR/kcal]
+
+---- LOM OPEX Summary on Assumptions_Dashboard (K109–K120) ----
+
+K109: "MDO/ Contractor Cost"   | L109: =S4       [INR/t LOM avg]
+K110: "Owner's Mining cost"    | L110: =L116+L117+L118+L119+L120
+K111: "Government Fees & Charges" | L111: =S32   [INR/t LOM avg]
+K112: "Total"                  | L112: =SUM(L109:L111)
+K115: "MDO/ Contractor Cost"   | L115: =L109
+K116: "HEMM Consumable"        | L116: =S6
+K117: "Owner Wage"             | L117: =S9
+K118: "Explosives"             | L118: =S10
+K119: "Others"                 | L119: =S7+S8+S11+S12+S14+S16+S13+S17+S18+S19
+K120: "Contingency"            | L120: =S20
+
+---- Government Fees breakdown on Assumptions_Dashboard (K121–K127) ----
+
+K121: "Government Fees & Charges" [Header]
+K122: "Revenue Sharing"        | L122: =S23
+K123: "GST on Revenue Sharing" | L123: =S24
+K124: "Royalty"                | L124: =S25
+K125: "DMF, NMET etc."         | L125: =S26+S27+S28+S31
+K126: "GST on Royalty etc."    | L126: =S29
+K127: "Progressive Mine Closure" | L127: =S30
+
+
+================================================================================
+SECTION 7 – GOVERNMENT FEES & TAXES — Government Sheet
+================================================================================
+
+Sheet: Government
+Purpose: Calculates all statutory government fees, taxes, and charges year-by-year
+
+---- Header/Production Data ----
+
+E2:   ='Production Schedule'!E1   [Year label]
+E3:   ='Production Schedule'!E3   [Project year number]
+E4:   ='Production Schedule'!E5   [Coal production (Mt)]
+E5:   ='Coal Price'!E5            [Coal grade (Kcal/kg)]
+E6:   =IF(Assumptions_Dashboard!$L$8="NCI", 'Coal Price'!E7*(1+Sensitivity!$C$6), 0)
+      [NCI price if price type = NCI, with sensitivity factor]
+E7:   =IF(Assumptions_Dashboard!$L$8="Commercial", 'Coal Price'!E8*(1+Sensitivity!$C$6), 0)
+      [Commercial price if price type = Commercial]
+
+Revenue:
+E8:   =E6*E4/10    [Revenue at NCI price (INR Cr)]
+E9:   =E7*E4/10    [Revenue at Commercial price (INR Cr)]
+
+---- Government Fees Calculations ----
+
+B12: Revenue Sharing
+  D12 = =Assumptions_Dashboard!$D$120    [Bid premium rate = 21%]
+  E12 = ='Coal Price'!E7 * Government!E4 * $D$12 / 10
+  [= Commercial price × coal production × revenue share rate / 10 (Cr conversion)]
+  Key input: Assumptions_Dashboard!D120 = 0.21 (Bid Premium / Revenue Sharing %)
+             Assumptions_Dashboard!D121 = "Commercial Sale Price" (basis for revenue sharing)
+
+B13: Upfront Payment Paid (per year)
+  E13 = =Assumptions_Dashboard!$D$133 * 25%
+  [Upfront Amount × 25% installment; total = Assumptions_Dashboard!D133 = 99.07 Cr]
+
+B14: Upfront Cumulative Paid (eligible for refund)
+  [Running sum of E13 over project life]
+
+B16: Upfront payment that can be adjusted (eligible for refund)
+  D16 = =SUM('Project CAPEX'!E12:AR12)   [Total upfront amounts paid during construction]
+
+B17: Adjusted Revenue Sharing
+  E17 = =E12 - E16
+  [Revenue Sharing less any upfront payment eligible for offset]
+
+B18: Final Revenue Sharing (after adjustment)
+  E18 = =E17
+
+B19: GST on Revenue Sharing
+  D19 = =Assumptions_Dashboard!D126      [GST on Revenue Sharing rate = 18%]
+  E19 = =E18 * $D$19
+  [Final Revenue Sharing × 18% GST]
+
+B20: Royalty
+  D20 = =Assumptions_Dashboard!D122      [Royalty rate = 14% of CIL notified price]
+  E20 = ='Coal Price'!E7 * Government!E4 * $D$20 / 10
+  [Commercial price × production × 14% / 10]
+
+B21: District Mineral Foundation (DMF)
+  D21 = =Assumptions_Dashboard!D123      [DMF rate = 10% of Royalty]
+  E21 = =E20 * $D$21
+  [Royalty × 10%]
+
+B22: National Mineral Exploration Trust (NMET)
+  D22 = =Assumptions_Dashboard!D124      [NMET rate = 3% of Royalty]
+  E22 = =E20 * $D$22
+  [Royalty × 3%]
+
+B23: Compensation Cess
+  D23 = =Assumptions_Dashboard!$D$130   [= "Omitted" / zero in current model]
+  E23 = =D23 * E4 / 10
+
+B24: Surface Rent
+  D24 = =(Assumptions_Dashboard!$D$134 * Assumptions_Dashboard!$D$135) / 10^7
+  [Surface Rent Rate (INR/ha) × ML Area (ha) / 10^7 = annual surface rent in INR Cr]
+  Key inputs:
+    Assumptions_Dashboard!D134 = 2,000 INR/ha (Surface Rent rate; Hard Input)
+    Assumptions_Dashboard!D135 = =D13 = 1,048 ha (ML Area = Block Area)
+
+B25: Vayapar Kar    [OMITTED in current model]
+B26: Public Works and Road Cess  [OMITTED in current model]
+Rows 27–29: Space for additional future fees
+
+B30: GST on Royalty, DMF, NMET, etc.
+  D30 = =Assumptions_Dashboard!D127      [GST rate = 18%]
+  E30 = =SUM(E20:E29) * $D$30
+  [Sum of Royalty + DMF + NMET + Cess + Surface Rent × 18% GST]
+
+B31: Total Government Fees (excl. Mine Closure)
+  E31 = =SUM(E18:E30)
+  [Sum of Final Revenue Sharing + GST on Rev Share + Royalty + DMF + NMET
+   + Cess + Surface Rent + GST on Royalty]
+
+---- Mine Closure Fund ----
+
+B35: Mine Closure Fund Cost
+  E35 = =IF(E$3<=0, 0, Assumptions_Dashboard!$D$175)
+  [Annual closure fund contribution if production year > 0]
+  Key inputs:
+    Assumptions_Dashboard!D175 = Annual Closure (INR Cr) = D173/D174/100
+    Assumptions_Dashboard!D173 = Total Closure Cost (Lakh INR) = D172 × D171
+    Assumptions_Dashboard!D171 = Closure Cost as on March 2026 = (D168×D170)/D169
+    Assumptions_Dashboard!D168 = 14 Lakh INR/ha (MOC Guideline Jan 2025)
+    Assumptions_Dashboard!D169 = 129.6 (WPI as on Jan 2025)
+    Assumptions_Dashboard!D170 = 160.8 (Latest WPI March 2026)
+    Assumptions_Dashboard!D172 = D135 = 1,048 ha (Disturbed Area = ML Area)
+    Assumptions_Dashboard!D174 = D12 = Life of Mine (years)
+
+
+================================================================================
+SECTION 8 – KEY HARD INPUTS ON ASSUMPTIONS_DASHBOARD
+================================================================================
+
+The following cells are RED (Hard Inputs) that drive all the CAPEX, OPEX,
+and Govt fee calculations. These must be the Admin-editable fields in the
+web application.
+
+---- Project Definition ----
+
+D4  = 2024-12-01  [Project Start Date]
+D5  = 2026-01-01  [Effective Start Date for Model]
+D6  = 2029-01-01  [Production Start Date]
+D7  = 5           [Production Starting Year]
+D10 = =MAX('Production Schedule'!E5:AM5)  [Rated Capacity, Mtpa – derived]
+D12 = =MAX('Production Schedule'!E3:AM3)  [Life of Mine, years – derived]
+D13 = 1,048 ha    [Block Area (ML Area)]
+L4  = "Departmental" or "MDO"  [Mining Operation Type SWITCH]
+L6  = "Yes"/"No"  [Pre-Tax & Pre-Finance Basis SWITCH]
+L8  = "Commercial" or "NCI"    [Coal Price Type SWITCH]
+
+---- Working Regime ----
+
+D16 = 3    [Number of Shifts/day]
+D17 = 8    [Hours/Shift]
+D20 = 365  [Calendar Days]
+D21 = 8    [National Holidays]
+D22 = =1+1 [Festival Impact Days]
+D25 = 2    [Monsoon Months with heavy rainfall]
+D26 = 8    [Hours lost per day in monsoon month]
+
+---- Government Fees Rates ----
+
+D120 = 0.21   [Bid Premium / Revenue Sharing %]
+D121 = "Commercial Sale Price"  [Revenue Sharing basis]
+D122 = 0.14   [Royalty % of CIL notified price]
+D123 = 0.10   [DMF % of Royalty]
+D124 = 0.03   [NMET % of Royalty]
+D125 = 0.18   [GST on Product %]
+D126 = 0.18   [GST on Revenue Sharing %]
+D127 = 0.18   [GST on Royalty+DMF+Cess/Services %]
+D128 = 0.2517 [Corporate Tax Rate]
+D129 = =15%*(1+12%)*(1+4%)  [MAT rate]
+D131 = 0.07   [Stamp Duty & Registration Charges %]
+D132 = 0.02   [Corporate Social Responsibility Fund %]
+D133 = 99.07  [Upfront Amount (INR Cr) - Tender document]
+D134 = 2,000  [Surface Rent (INR/ha)]
+D135 = =D13   [ML area (ha)]
+
+---- OPEX Rate Assumptions ----
+
+D96  = 15     [Administrative Cost (INR/t)]
+D97  = =30*(15/6)  [Environment Management Cost (INR Cr) – pre-operative]
+D98  = =1.28*(15/6) [Env Management & OHS Cost (INR Cr)]
+D99  = 0.15   [Operating cost contingency %]
+D100 = 0.15   [Capital cost contingency %]
+D101 = 95     [Base diesel cost (INR/lit, 5% bulk discount)]
+D102 = 7.4    [Power Charge (INR/KVAh)]
+D103 = 0.5    [Owner - % persons for facility]
+D104 = 15,000 [Owner - Per Person Cost (INR)]
+D105 = 0.75   [MDO - % persons for facility]
+D106 = 15,000 [MDO - Per Person Cost (INR)]
+D107–D111: Maintenance rates:
+  D108 = 0.025  [Civil Infrastructure Maintenance %]
+  D109 = 0.025  [Electricals Maintenance %]
+  D110 = 0.035  [Mechanical Maintenance %]
+  D111 = 0.035  [AMC for Digitalization Setup (Owner) %]
+
+---- CAPEX Rate Assumptions ----
+
+D117 = 0.03   [CHP Sustaining Capital %]
+D118 = 0.035  [Civil Infra Sustaining Capital %]
+
+---- Financial Assumptions ----
+
+D128 = 0.2517 [Corporate Tax Rate]
+D129 = =15%*(1+12%)*(1+4%) [MAT]
+D132 = 0.02   [CSR Fund %]
+D140 = 0.10   [Corporate Loan Interest %]
+D141 = 0.10   [Working Capital Loan Interest %]
+D142 = 5      [Moratorium Period (years)]
+D143 = 7      [Payback Period (years)]
+D144 = =IF($L$6="Yes", 0, 0.30)  [Portion of Debt Finance – 0 if Pre-Finance]
+D147 = 0.20   [MDO Margin %]
+D148 = =IF($L$6="Yes", 0, 0.70)  [Debt % for MDO – 0 if Pre-Finance]
+
+---- MDO Rates ----
+
+D150 = 70     [Top Soil Removal, Transport & Stacking (INR/bcm)]
+D151 = 90     [OB Drilling, Blasting, Removal, Transport (INR/bcm)]
+D152 = 100    [Coal Drilling, Blasting, Removal, Transport (INR/t)]
+D153 = 70     [OB Rehandling Cost (INR/bcm)]
+
+---- Closure Cost ----
+
+D168 = 14     [Closure Cost (Lakh INR/ha) – MOC Guideline Jan 2025]
+D169 = 129.6  [WPI Jan 2025]
+D170 = 160.8  [Latest WPI March 2026]
+D175 = Annual Closure (INR Cr) = D173/D174/100
+D176 = 0.05   [Annual Interest on Closure Fund %]
+
+---- Wage Details (Executive grades) ----
+
+D38  = 6,000,000  INR [Project Head / VP – Annual CTC]
+D39  = 4,500,000  INR [VP/CGM]
+D40  = 4,000,000  INR [GM]
+D41  = 3,500,000  INR [DGM]
+D42  = 2,500,000  INR [AGM]
+D43  = 1,800,000  INR [Senior Manager]
+D44  = 1,500,000  INR [Manager]
+D45  = 1,235,000  INR [Assistant Manager]
+D46  =   960,000  INR [Deputy Manager]
+D47  =   750,000  INR [GET/Junior Engineer]
+[MDO grades similarly in D48–D53]
+
+
+================================================================================
+SECTION 9 – OTHER CATEGORY (VLOOKUP-based lookup table)
+================================================================================
+
+Assumptions_Dashboard rows 131–140 provide a VLOOKUP lookup against the
+LOM OPEX table (Q4:S32) to pull specific cost items by name:
+
+K131 = =Q7    [References row 7 label from LOM table = "CHP" or similar]
+L131 = =VLOOKUP(K131, $Q$4:$S$32, 3, FALSE)
+       [Finds the item name in Q4:S32 and returns its total cost in col S]
+
+K132 = =Q8    | L132 = =VLOOKUP(K132, $Q$4:$S$32, 3, FALSE)
+K133 = =Q11   | L133 = =VLOOKUP(K133, $Q$4:$S$32, 3, FALSE)
+K134 = =Q12   | L134 = =VLOOKUP(K134, $Q$4:$S$32, 3, FALSE)
+K135 = =Q13   | L135 = =ROUNDUP(VLOOKUP(K135, $Q$4:$S$32, 3, FALSE), 0)
+K136 = =Q14   | L136 = =VLOOKUP(K136, $Q$4:$S$32, 3, FALSE)
+K137 = =Q16   | L137 = =VLOOKUP(K137, $Q$4:$S$32, 3, FALSE)
+K138 = =Q18   | L138 = =VLOOKUP(K138, $Q$4:$S$32, 3, FALSE)
+K139 = =Q19   | L139 = =VLOOKUP(K139, $Q$4:$S$32, 3, FALSE)
+
+K140: Total  | L140 = =ROUNDDOWN(SUM(L131:L139), 0)
+
+
+================================================================================
+SECTION 10 – FORMULA DEPENDENCY MAP (Summary for Backend Translation)
+================================================================================
+
+ OUTPUT                        ← SOURCE SHEET(S) / KEY INPUTS
+─────────────────────────────────────────────────────────────────────────────
+[CAPEX – Owner Initial]
+ Total Owner Initial CAPEX     ← Owner CAPEX!D26
+   └─ Pre-operative costs      ← Pre-Operative sheet
+   └─ Upfront Amount           ← Assumptions_Dashboard!D133
+   └─ Land Cost                ← Land sheet
+   └─ R&R Cost                 ← R&R sheet
+   └─ HEMM Equipment           ← Capex Breakups (conditional on L4="Departmental")
+   └─ CHP                      ← Capex Breakups
+   └─ Railway Siding           ← Capex Breakups
+   └─ Civil Infrastructure     ← Capex Breakups
+   └─ Fire Fighting             ← Capex Breakups
+   └─ Workshop and Store       ← Capex Breakups (conditional on L4="Departmental")
+   └─ Electrical               ← Capex Breakups (always included)
+   └─ Mine Dewatering          ← Capex Breakups (conditional on L4="Departmental")
+   └─ Digitalisation           ← Capex Breakups (always included)
+   └─ Contingency              ← 15% × SUM(above items) [D100=0.15]
+   └─ IDC                      ← Borrowings-Owner sheet
+
+[CAPEX – Owner Sustaining]
+ Total Owner Sustaining CAPEX  ← Owner CAPEX!D39
+   └─ Equipment Replacement    ← Fleet sheet (conditional on L4="Departmental")
+   └─ CHP Sustaining           ← CHP initial cost × D117 (3%)
+   └─ Civil Infra Sustaining   ← Civil Infra cost × D118 (3.5%)
+   └─ Others                   ← Electrical, Mine Dew, Digit sustaining costs
+   └─ Contingency              ← 15% × above
+
+[CAPEX – MDO Initial & Sustaining]
+ MDO CAPEX                     ← MDO CAPEX sheet (active only if L4="MDO")
+   └─ HEMM, Civil, Fire, Electrical, Mine Dew, Digit
+   └─ Contingency (15%) + IDC ← Borrowings-MDO sheet
+
+[OPEX – Owner Mining Costs]
+ Owner OPEX (INR/t, LOM avg)  ← Project OPEX!D13–D52 (SUMPRODUCT weighted avg)
+   └─ Diesel                  ← Equipment Op Cost × diesel price (D101)
+   └─ Lubrication, Spares     ← Equipment Op Cost sheet
+   └─ Tyres                   ← Equipment sheet
+   └─ CHP                     ← CHP operating parameters
+   └─ Power                   ← Equipment power consumption × D102
+   └─ Owner Wage              ← Wage-Owner sheet (CTC grades D38-D47)
+   └─ Explosives              ← Explosive sheet × production schedule
+   └─ Civil Maintenance       ← Civil CAPEX × D108 (2.5%)
+   └─ Railway Maintenance     ← Railway CAPEX × maintenance rate
+   └─ Env Management & OHS   ← D98 prorated to capacity
+   └─ Admin & Overhead        ← D96 × Annual production
+   └─ Contingency (15%)       ← D99 × sum above
+
+[OPEX – MDO Contractor]
+ MDO OPEX                     ← Contractor OPEX sheet (if L4="MDO")
+   └─ Based on D150-D153 unit rates × annual volumes from Production Schedule
+
+[Govt Fees & Taxes – Annual]
+ Revenue Sharing              ← Coal Price × Production × D120 (21%)
+                                  adjusted by upfront payment offset
+ GST on Revenue Sharing       ← Revenue Sharing × D126 (18%)
+ Royalty                      ← Coal Price × Production × D122 (14%)
+ DMF                          ← Royalty × D123 (10%)
+ NMET                         ← Royalty × D124 (3%)
+ Surface Rent                 ← D134 × D135 / 10^7 (per year, flat rate)
+ GST on Royalty+DMF+NMET      ← (Royalty + DMF + NMET) × D127 (18%)
+ Progressive Mine Closure     ← Annual closure fund = D173 / D174 / 100
+ Bank Fee on PBG              ← From Borrowings/CF sheet
+
+[Taxes]
+ Corporate Tax                ← P&L sheet, using D128 = 25.17%
+ MAT                          ← P&L sheet, using D129 = 15% × (1+12%) × (1+4%)
+ CSR Fund                     ← D132 (2%) × net profit
+
+================================================================================
+END OF DOCUMENT
+================================================================================

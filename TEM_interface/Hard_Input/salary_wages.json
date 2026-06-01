@@ -1,0 +1,335 @@
+[
+	{
+		"id": 1,
+		"key": "executive_project_head_vp_e9",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Project Head/ Vice-President",
+		"Category": "E9",
+		"Annual CTC": "60,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 2,
+		"key": "executive_vp_cgm_e8",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Vice-President/Chief General Manager",
+		"Category": "E8",
+		"Annual CTC": "45,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 3,
+		"key": "executive_general_manager_e7",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "General Manager",
+		"Category": "E7",
+		"Annual CTC": "40,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 4,
+		"key": "executive_deputy_general_manager_e6",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Deputy General Manager",
+		"Category": "E6",
+		"Annual CTC": "35,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 5,
+		"key": "executive_assistant_general_manager_e5",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Assistant General Manager",
+		"Category": "E5",
+		"Annual CTC": "25,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 6,
+		"key": "executive_senior_manager_e4",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Senior Manager",
+		"Category": "E4",
+		"Annual CTC": "18,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 7,
+		"key": "executive_manager_e3",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Manager",
+		"Category": "E3",
+		"Annual CTC": "15,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 8,
+		"key": "executive_assistant_manager_e2",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Assistant Manager",
+		"Category": "E2",
+		"Annual CTC": "12,35,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 9,
+		"key": "executive_deputy_manager_e1",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Deputy Manager",
+		"Category": "E1",
+		"Annual CTC": "9,60,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 10,
+		"key": "executive_get_junior_engineer_e0",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "GET/ Junior Engineer",
+		"Category": "E0",
+		"Annual CTC": "7,50,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 11,
+		"key": "executive_project_head_vp_m9",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Project Head/ Vice-President",
+		"Category": "M9",
+		"Annual CTC": "70,00,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 12,
+		"key": "executive_vp_cgm_m8",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Vice-President/Chief General Manager",
+		"Category": "M8",
+		"Annual CTC": "55,00,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 13,
+		"key": "executive_general_manager_m7",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "General Manager",
+		"Category": "M7",
+		"Annual CTC": "40,00,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 14,
+		"key": "executive_deputy_general_manager_m6",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Deputy General Manager",
+		"Category": "M6",
+		"Annual CTC": "35,00,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 15,
+		"key": "executive_assistant_general_manager_m5",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Assistant General Manager",
+		"Category": "M5",
+		"Annual CTC": "25,00,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 16,
+		"key": "executive_senior_manager_m4",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Senior Manager",
+		"Category": "M4",
+		"Annual CTC": "18,00,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 17,
+		"key": "executive_manager_m3",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Manager",
+		"Category": "M3",
+		"Annual CTC": "15,00,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 18,
+		"key": "executive_assistant_manager_m2",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Assistant Manager",
+		"Category": "M2",
+		"Annual CTC": "12,35,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 19,
+		"key": "executive_deputy_manager_m1",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "Deputy Manager",
+		"Category": "M1",
+		"Annual CTC": "9,60,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 20,
+		"key": "executive_get_junior_engineer_m0",
+		"Section": "Category wise Executives wage details",
+		"Category wise Executives wage details": "GET/ Junior Engineer",
+		"Category": "M0",
+		"Annual CTC": "7,50,000",
+		"Basis": "MDO Salary, Industry Standards"
+	},
+	{
+		"id": 21,
+		"key": "statutory_staff_s10",
+		"Section": "Statutory Staffs & Operator wage details",
+		"Category wise Executives wage details": "Staff",
+		"Category": "S10",
+		"Annual CTC": "9,00,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 22,
+		"key": "statutory_staff_s9",
+		"Section": "Statutory Staffs & Operator wage details",
+		"Category wise Executives wage details": "Staff",
+		"Category": "S9",
+		"Annual CTC": "7,80,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 23,
+		"key": "statutory_staff_s8",
+		"Section": "Statutory Staffs & Operator wage details",
+		"Category wise Executives wage details": "Staff",
+		"Category": "S8",
+		"Annual CTC": "6,70,000",
+		"Basis": "SRK Assumption"
+	},
+	{
+		"id": 24,
+		"key": "statutory_staff_s7",
+		"Section": "Statutory Staffs & Operator wage details",
+		"Category wise Executives wage details": "Staff",
+		"Category": "S7",
+		"Annual CTC": "4,00,000",
+		"Basis": "Industry Standard"
+	},
+	{
+		"id": 25,
+		"key": "statutory_operator_senior_s6",
+		"Section": "Statutory Staffs & Operator wage details",
+		"Category wise Executives wage details": "Operator - Senior",
+		"Category": "S6",
+		"Annual CTC": "6,10,000",
+		"Basis": "HPC Wage/ SRK In-house databasr"
+	},
+	{
+		"id": 26,
+		"key": "statutory_operator_mid_senior_s5",
+		"Section": "Statutory Staffs & Operator wage details",
+		"Category wise Executives wage details": "Operator - Mid Senior",
+		"Category": "S5",
+		"Annual CTC": "6,00,000",
+		"Basis": "HPC Wage/ SRK In-house databasr"
+	},
+	{
+		"id": 27,
+		"key": "statutory_operator_junior_s4",
+		"Section": "Statutory Staffs & Operator wage details",
+		"Category wise Executives wage details": "Operator - Junior",
+		"Category": "S4",
+		"Annual CTC": "6,00,000",
+		"Basis": "HPC Wage/ SRK In-house databasr"
+	},
+	{
+		"id": 28,
+		"key": "staff_norm_highly_skilled_s3",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Highly skilled",
+		"Category": "S3",
+		"Annual CTC": "4,20,000",
+		"Basis": "Central Wage Rule/ SRK in-house database"
+	},
+	{
+		"id": 29,
+		"key": "staff_norm_skilled_clerical_s2",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Skilled /Clerical",
+		"Category": "S2",
+		"Annual CTC": "3,60,000",
+		"Basis": "Central Wage Rule/ SRK in-house database"
+	},
+	{
+		"id": 30,
+		"key": "staff_norm_semi_skilled_unskilled_supervisory_s1",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Semi Skilled/unskilled supervisory",
+		"Category": "S1",
+		"Annual CTC": "3,00,000",
+		"Basis": "Central Wage Rule/ SRK in-house database"
+	},
+	{
+		"id": 31,
+		"key": "staff_norm_unskilled_s0",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Unskilled",
+		"Category": "S0",
+		"Annual CTC": "2,40,000",
+		"Basis": "Central Wage Rule/ SRK in-house database"
+	},
+	{
+		"id": 32,
+		"key": "staff_norm_security_armed_o1",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Security - Armed",
+		"Category": "O1",
+		"Annual CTC": "3,20,000",
+		"Basis": "Central Wage Rule/ SRK in-house database"
+	},
+	{
+		"id": 33,
+		"key": "staff_norm_security_unarmed_o2",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Security - Unarmed",
+		"Category": "O2",
+		"Annual CTC": "3,00,000",
+		"Basis": "Central Wage Rule/ SRK in-house database"
+	},
+	{
+		"id": 34,
+		"key": "staff_norm_highly_skilled_s3a",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Highly skilled",
+		"Category": "S3a",
+		"Annual CTC": "6,10,000",
+		"Basis": "HPC Wage/ SRK In-house database"
+	},
+	{
+		"id": 35,
+		"key": "staff_norm_skilled_s2a",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Skilled",
+		"Category": "S2a",
+		"Annual CTC": "6,00,000",
+		"Basis": "HPC Wage/ SRK In-house database"
+	},
+	{
+		"id": 36,
+		"key": "staff_norm_semi_skilled_unskilled_supervisory_s1a",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Semi Skilled/unskilled supervisory",
+		"Category": "S1a",
+		"Annual CTC": "5,80,000",
+		"Basis": "HPC Wage/ SRK In-house database"
+	},
+	{
+		"id": 37,
+		"key": "staff_norm_unskilled_s0a",
+		"Section": "Staff Wage System as per norms",
+		"Category wise Executives wage details": "Unskilled",
+		"Category": "S0a",
+		"Annual CTC": "5,70,000",
+		"Basis": "HPC Wage/ SRK In-house database"
+	}
+]

@@ -1,0 +1,295 @@
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const { MongoClient } = require("mongodb");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const MONGO_URI = process.env.MONGODB_URI;
+const DB_NAME = process.env.DATABASE_NAME || "tem";
+const PORT = process.env.PORT || 4000;
+
+let db;
+
+async function connectDB() {
+  const client = new MongoClient(MONGO_URI);
+  await client.connect();
+  db = client.db(DB_NAME);
+  console.log(`Connected to MongoDB database: ${DB_NAME}`);
+}
+
+// ── Scenario endpoints ──────────────────────────────────────────────
+
+// GET /api/scenarios — list all scenario keys
+app.get("/api/scenarios", async (_req, res) => {
+  try {
+    const docs = await db
+      .collection("computed_results")
+      .find({}, { projection: { scenarioKey: 1, switches: 1, _id: 0 } })
+      .toArray();
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/scenarios/:key — full computed results for one scenario
+app.get("/api/scenarios/:key", async (req, res) => {
+  try {
+    const doc = await db
+      .collection("computed_results")
+      .findOne({ scenarioKey: req.params.key }, { projection: { _id: 0 } });
+    if (!doc) return res.status(404).json({ error: "Scenario not found" });
+    res.json(doc);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Schedules / raw breakdowns ──────────────────────────────────────
+
+// GET /api/schedules/capex-breakups — individual CAPEX component schedules
+app.get("/api/schedules/capex-breakups", async (_req, res) => {
+  try {
+    const docs = await db
+      .collection("capex_breakups_schedule")
+      .find({}, { projection: { _id: 0 } })
+      .toArray();
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/schedules/production — production schedule
+app.get("/api/schedules/production", async (_req, res) => {
+  try {
+    const docs = await db
+      .collection("production_schedule")
+      .find({}, { projection: { _id: 0 } })
+      .toArray();
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/schedules/:collection — generic schedule reader
+app.get("/api/schedules/:collection", async (req, res) => {
+  const allowed = [
+    "production_schedule",
+    "pre_operative_schedule",
+    "land_schedule",
+    "rr_schedule",
+    "coal_price_schedule",
+    "capex_breakups_schedule",
+    "fleet_replacement_schedule",
+    "wages_schedule",
+    "government_schedule",
+    "owner_opex_schedule",
+    "project_opex_schedule",
+  ];
+  const col = req.params.collection;
+  if (!allowed.includes(col)) {
+    return res.status(400).json({ error: `Collection '${col}' is not allowed` });
+  }
+  try {
+    const docs = await db
+      .collection(col)
+      .find({}, { projection: { _id: 0 } })
+      .toArray();
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Hard inputs (admin) ─────────────────────────────────────────────
+
+const HARD_INPUT_COLLECTIONS = [
+  "salary_wages",
+  "working_regime",
+  "basic_consideration",
+  "density_swell_factor",
+  "explosives",
+  "unit_rates_opcosts",
+  "maintainance_cost",
+  "operational_para",
+  "govt_fees_charges",
+  "payment_assumption",
+  "mdo_assumption",
+  "safety_slope_stability",
+];
+
+// GET /api/hard-inputs — all hard input collections
+app.get("/api/hard-inputs", async (_req, res) => {
+  try {
+    const result = {};
+    for (const col of HARD_INPUT_COLLECTIONS) {
+      result[col] = await db
+        .collection(col)
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/hard-inputs/:collection
+app.get("/api/hard-inputs/:collection", async (req, res) => {
+  const col = req.params.collection;
+  if (!HARD_INPUT_COLLECTIONS.includes(col)) {
+    return res.status(400).json({ error: `Collection '${col}' not available` });
+  }
+  try {
+    const docs = await db
+      .collection(col)
+      .find({}, { projection: { _id: 0 } })
+      .toArray();
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Component-level CAPEX breakdown (for pie chart) ─────────────────
+
+// Returns LOM totals for each CAPEX component from the raw schedules
+app.get("/api/capex-breakdown", async (_req, res) => {
+  try {
+    // Pre-operative
+    const preOp = await db
+      .collection("pre_operative_schedule")
+      .findOne({ item: "Total" });
+    const preOpTotal = preOp
+      ? Object.values(preOp.yearly_values).reduce((s, v) => s + (parseFloat(v) || 0), 0)
+      : 0;
+
+    // Land
+    const land = await db
+      .collection("land_schedule")
+      .findOne({ item: /Land/ });
+    const landTotal = land
+      ? Object.values(land.yearly_values).reduce((s, v) => s + (parseFloat(v) || 0), 0)
+      : 0;
+
+    // R&R
+    const rr = await db.collection("rr_schedule").findOne({ item: /R.R/ });
+    const rrTotal = rr
+      ? Object.values(rr.yearly_values).reduce((s, v) => s + (parseFloat(v) || 0), 0)
+      : 0;
+
+    // HEMM (fleet initial)
+    const fleet = await db
+      .collection("fleet_replacement_schedule")
+      .findOne({ item: /Total Initial/ });
+    const fleetTotal = fleet
+      ? Object.values(fleet.yearly_values).reduce((s, v) => s + (parseFloat(v) || 0), 0)
+      : 0;
+
+    // HEMM Replacement (sustaining)
+    const fleetRepl = await db
+      .collection("fleet_replacement_schedule")
+      .findOne({ item: /Replacement/ });
+    const fleetReplTotal = fleetRepl
+      ? Object.values(fleetRepl.yearly_values).reduce((s, v) => s + (parseFloat(v) || 0), 0)
+      : 0;
+
+    // Capex breakups (CHP, Railway Siding, Civil, etc.)
+    const breakups = await db
+      .collection("capex_breakups_schedule")
+      .find({})
+      .toArray();
+    const breakupTotals = {};
+    for (const b of breakups) {
+      breakupTotals[b.item] = Object.values(b.yearly_values).reduce(
+        (s, v) => s + (parseFloat(v) || 0),
+        0
+      );
+    }
+
+    res.json({
+      pre_operative: preOpTotal,
+      land: landTotal,
+      rr: rrTotal,
+      hemm_initial: fleetTotal,
+      hemm_replacement: fleetReplTotal,
+      breakups: breakupTotals,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Admin update and recalculation endpoints ─────────────────────────
+
+const VALUE_FIELDS = {
+  salary_wages: "Annual CTC",
+  working_regime: "Values",
+  basic_consideration: "Value",
+  density_swell_factor: "Value",
+  explosives: "Value",
+  unit_rates_opcosts: "Base Rate",
+  maintainance_cost: "Base Rate",
+  operational_para: "Values",
+  govt_fees_charges: "Base Rate",
+  payment_assumption: "Base Rate",
+  mdo_assumption: "Value",
+  safety_slope_stability: "Value"
+};
+
+// POST /api/admin/update-input — update a single parameter's value
+app.post("/api/admin/update-input", async (req, res) => {
+  const { collection, key, value } = req.body;
+  if (!collection || !key || value === undefined) {
+    return res.status(400).json({ error: "Missing collection, key, or value" });
+  }
+
+  const valField = VALUE_FIELDS[collection];
+  if (!valField) {
+    return res.status(400).json({ error: `Invalid collection: ${collection}` });
+  }
+
+  try {
+    const result = await db.collection(collection).updateOne(
+      { key: key },
+      { $set: { [valField]: value } }
+    );
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Parameter not found" });
+    }
+    res.json({ success: true, message: "Parameter updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/recalculate — trigger calculate_tem.py recalculation
+const { exec } = require("child_process");
+const path = require("path");
+
+app.post("/api/recalculate", async (req, res) => {
+  const scriptPath = path.join(__dirname, "../calculate_tem.py");
+  console.log(`Running calculation engine script: ${scriptPath}`);
+  
+  exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Recalculation error: ${error.message}`);
+      return res.status(500).json({ error: error.message, stderr });
+    }
+    console.log("Recalculation completed successfully.");
+    res.json({ success: true, stdout });
+  });
+});
+
+// ── Start server ────────────────────────────────────────────────────
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`TEM API server running on http://localhost:${PORT}`);
+  });
+});

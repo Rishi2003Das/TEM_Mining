@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "key": "blasting_requirement_100_percent_for_how_many_years",
+    "Description": "Blasting Requirement 100% for how many years",
+    "Unit": "Year",
+    "Value": "2.0",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 2,
+    "key": "blasting_requirement_in_coal_throughout_life",
+    "Description": "Blasting Requirement in coal through out life",
+    "Unit": "%",
+    "Value": "15%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 3,
+    "key": "density_of_explosives",
+    "Description": "Density of explosives",
+    "Unit": "t/cum",
+    "Value": "1.10",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 4,
+    "key": "boosters_required_in_a_hole_250mm",
+    "Description": "Boosters required in a hole/ 250mm",
+    "Unit": "gm",
+    "Value": "600",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 5,
+    "key": "boosters_required_in_a_hole_160mm",
+    "Description": "Boosters required in a hole/ 160mm",
+    "Unit": "gm",
+    "Value": "500",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 6,
+    "key": "boosters_required_in_a_hole_115mm",
+    "Description": "Boosters required in a hole/ 115mm",
+    "Unit": "gm",
+    "Value": "400",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 7,
+    "key": "booster_costs",
+    "Description": "Booster costs",
+    "Unit": "INR/ 100g",
+    "Value": "30",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 8,
+    "key": "nonel_costs",
+    "Description": "Nonel (downhole and surface delay) costs",
+    "Unit": "INR/m",
+    "Value": "25",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 9,
+    "key": "bulk_explosives_costs_basic_rate",
+    "Description": "Bulk explosives costs - Basic rate",
+    "Unit": "INR/kg",
+    "Value": "52",
+    "Basis": "SRK Assumption"
+  }
+]

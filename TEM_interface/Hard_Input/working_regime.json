@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1,
+    "key": "number_of_shifts_per_day",
+    "Description": "Number of Shifts/day",
+    "Units": "Nos.",
+    "Values": "3.0",
+    "Basis": "Standard Assumption"
+  },
+  {
+    "id": 2,
+    "key": "hours_per_shift",
+    "Description": "Hours/ Shift",
+    "Units": "hrs",
+    "Values": "8.0",
+    "Basis": "Standard Assumption"
+  },
+  {
+    "id": 3,
+    "key": "delays_and_refreshment",
+    "Description": "Delays & Refreshment",
+    "Units": "hrs",
+    "Values": "-",
+    "Basis": "Considered in Utilization %"
+  },
+  {
+    "id": 4,
+    "key": "actual_hours_per_shift",
+    "Description": "Actual Hours/ Shift",
+    "Units": "hrs",
+    "Values": "8.0",
+    "Basis": "Standard Assumption"
+  },
+  {
+    "id": 5,
+    "key": "calendar_days",
+    "Description": "Calendar Days",
+    "Units": "Days",
+    "Values": "365",
+    "Basis": "Standard Assumption"
+  },
+  {
+    "id": 6,
+    "key": "national_holidays",
+    "Description": "National Holidays",
+    "Units": "Days",
+    "Values": "8",
+    "Basis": "Standard Assumption"
+  },
+  {
+    "id": 7,
+    "key": "festival_impact",
+    "Description": "Festival Impact",
+    "Units": "Days",
+    "Values": "2",
+    "Basis": "Impacted attendence due to festival"
+  },
+  {
+    "id": 8,
+    "key": "available_days",
+    "Description": "Available Days",
+    "Units": "Days",
+    "Values": "355",
+    "Basis": "Derived"
+  },
+  {
+    "id": 9,
+    "key": "extreme_summer_impact",
+    "Description": "Extreme Summer Impact",
+    "Units": "Days",
+    "Values": "5",
+    "Basis": "30days of extreme heat consider with no work of 4 hours in day (11am to 3pm)"
+  },
+  {
+    "id": 10,
+    "key": "number_of_monsoon_months_having_heavy_rainfall",
+    "Description": "Number of Moonsoon Month having heavy rainfall",
+    "Units": "Months",
+    "Values": "2",
+    "Basis": "Standard Assumption"
+  },
+  {
+    "id": 11,
+    "key": "hours_loss_per_day_in_monsoon_month",
+    "Description": "Hours loss per day in Moonsoon Month",
+    "Units": "hrs/day",
+    "Values": "8",
+    "Basis": "Standard Assumption"
+  },
+  {
+    "id": 12,
+    "key": "days_loss_due_to_rain",
+    "Description": "Days loss due to rain",
+    "Units": "Days",
+    "Values": "20",
+    "Basis": "Derived"
+  },
+  {
+    "id": 13,
+    "key": "working_days",
+    "Description": "Working days",
+    "Units": "Days",
+    "Values": "330",
+    "Basis": "Derived"
+  },
+  {
+    "id": 14,
+    "key": "total_available_hours",
+    "Description": "Total available Hours",
+    "Units": "hrs",
+    "Values": "7,920",
+    "Basis": "Derived"
+  }
+]

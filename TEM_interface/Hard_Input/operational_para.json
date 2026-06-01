@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "key": "additional_equipment_capacity",
+    "Operational Parameters": "Additional equipment capacity",
+    "Unit": "%",
+    "Values": "0%",
+    "Basis": ""
+  },
+  {
+    "id": 2,
+    "key": "seven_days_working_reserves",
+    "Operational Parameters": "7 days working Reserves",
+    "Unit": "%",
+    "Values": "14%",
+    "Basis": ""
+  },
+  {
+    "id": 3,
+    "key": "leave_and_sick_reserves",
+    "Operational Parameters": "Leave and Sick Reserves",
+    "Unit": "%",
+    "Values": "15%",
+    "Basis": ""
+  },
+  {
+    "id": 4,
+    "key": "fy_start_date_of_mining_operations",
+    "Operational Parameters": "FY - Start date of Mining operations",
+    "Unit": "",
+    "Values": "1-Jan-29",
+    "Basis": ""
+  },
+  {
+    "id": 5,
+    "key": "chp_sustaining_capital",
+    "Operational Parameters": "CHP Sustaining Capital",
+    "Unit": "%",
+    "Values": "3%",
+    "Basis": "Majority for Belt replacement after every 8 year"
+  },
+  {
+    "id": 6,
+    "key": "civil_infra_sustaining_capital",
+    "Operational Parameters": "Civil Infra Sustaining Capital",
+    "Unit": "%",
+    "Values": "4%",
+    "Basis": "Majority for reconstruction of Coal Depo during 10th Year of operation"
+  }
+]

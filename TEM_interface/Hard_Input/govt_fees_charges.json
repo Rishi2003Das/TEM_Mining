@@ -1,0 +1,130 @@
+[
+  {
+    "id": 1,
+    "key": "bid_premium_revenue_sharing",
+    "Government Fees and charges": "Bid Premium/ Revenue Sharing",
+    "Unit": "% of price",
+    "Base Rate": "21.0%",
+    "Basis": ""
+  },
+  {
+    "id": 2,
+    "key": "revenue_sharing_of_nci_price_or_commercial_sale_price",
+    "Government Fees and charges": "Revenue Sharing of NCI Price or Commercial Sale Price",
+    "Unit": "",
+    "Base Rate": "Commercial Sale Price",
+    "Basis": ""
+  },
+  {
+    "id": 3,
+    "key": "royalty",
+    "Government Fees and charges": "Royalty",
+    "Unit": "% of CIL notified price",
+    "Base Rate": "14.0%",
+    "Basis": ""
+  },
+  {
+    "id": 4,
+    "key": "district_mineral_foundation_dmf",
+    "Government Fees and charges": "District Mineral Foundation (DMF)",
+    "Unit": "% of Royalty",
+    "Base Rate": "10.0%",
+    "Basis": ""
+  },
+  {
+    "id": 5,
+    "key": "national_mineral_exploration_trust_nmet",
+    "Government Fees and charges": "National Mineral Exploration Trust (NMET)",
+    "Unit": "% of Royalty",
+    "Base Rate": "3.0%",
+    "Basis": "As per Latest Guideline"
+  },
+  {
+    "id": 6,
+    "key": "gst_on_product",
+    "Government Fees and charges": "GST on Product",
+    "Unit": "% of Sale Price",
+    "Base Rate": "18.0%",
+    "Basis": ""
+  },
+  {
+    "id": 7,
+    "key": "gst_on_revenue_sharing",
+    "Government Fees and charges": "GST on Revenue Sharing",
+    "Unit": "%",
+    "Base Rate": "18.0%",
+    "Basis": ""
+  },
+  {
+    "id": 8,
+    "key": "gst_on_royalty_dmf_cess_services",
+    "Government Fees and charges": "GST on Royalty+DMF+Cess/Services",
+    "Unit": "%",
+    "Base Rate": "18.0%",
+    "Basis": ""
+  },
+  {
+    "id": 9,
+    "key": "corporate_tax",
+    "Government Fees and charges": "Corporate Tax",
+    "Unit": "%",
+    "Base Rate": "25.2%",
+    "Basis": ""
+  },
+  {
+    "id": 10,
+    "key": "mat",
+    "Government Fees and charges": "MAT",
+    "Unit": "%",
+    "Base Rate": "17.5%",
+    "Basis": ""
+  },
+  {
+    "id": 11,
+    "key": "compensation_cess",
+    "Government Fees and charges": "Compensation Cess",
+    "Unit": "INR/t",
+    "Base Rate": "",
+    "Basis": "Omitted"
+  },
+  {
+    "id": 12,
+    "key": "stamp_duty_and_registration_charges",
+    "Government Fees and charges": "Stamp Duty & Registration Charges",
+    "Unit": "%",
+    "Base Rate": "7.0%",
+    "Basis": ""
+  },
+  {
+    "id": 13,
+    "key": "corporate_social_responsibility_fund",
+    "Government Fees and charges": "Corporate Social Responsibility Fund",
+    "Unit": "%",
+    "Base Rate": "2.0%",
+    "Basis": "Of Profit"
+  },
+  {
+    "id": 14,
+    "key": "upfront_amount",
+    "Government Fees and charges": "Upfront Amount",
+    "Unit": "INR Cr",
+    "Base Rate": "99.07",
+    "Basis": "Tender document"
+  },
+  {
+    "id": 15,
+    "key": "surface_rent",
+    "Government Fees and charges": "Surface Rent",
+    "Unit": "INR/ha",
+    "Base Rate": "2,000",
+    "Basis": "Dead rent is paid once  minining lease is approved till production start, the Surface rent is paid"
+  },
+  {
+    "id": 16,
+    "key": "ml_area",
+    "Government Fees and charges": "ML area",
+    "Unit": "ha",
+    "Base Rate": "1048.00",
+    "Basis": ""
+  }
+]

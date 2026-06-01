@@ -1,0 +1,66 @@
+[
+  {
+    "id": 1,
+    "key": "accounts_receivable_days",
+    "Payment related assumption": "Accounts Receivable Days",
+    "Unit": "Days",
+    "Base Rate": "45",
+    "Basis": ""
+  },
+  {
+    "id": 2,
+    "key": "inventory_days",
+    "Payment related assumption": "Inventory Days",
+    "Unit": "Days",
+    "Base Rate": "30",
+    "Basis": ""
+  },
+  {
+    "id": 3,
+    "key": "accounts_payable_days",
+    "Payment related assumption": "Accounts Payable Days",
+    "Unit": "Days",
+    "Base Rate": "21",
+    "Basis": ""
+  },
+  {
+    "id": 4,
+    "key": "corporate_loan_interest",
+    "Payment related assumption": "Corporate Loan Interest",
+    "Unit": "%",
+    "Base Rate": "10.0%",
+    "Basis": ""
+  },
+  {
+    "id": 5,
+    "key": "working_capital_loan_interest",
+    "Payment related assumption": "Working Capital Loan Interest",
+    "Unit": "%",
+    "Base Rate": "10.0%",
+    "Basis": ""
+  },
+  {
+    "id": 6,
+    "key": "moratorium_period",
+    "Payment related assumption": "Moratorium Period",
+    "Unit": "Years",
+    "Base Rate": "5",
+    "Basis": ""
+  },
+  {
+    "id": 7,
+    "key": "payback_period",
+    "Payment related assumption": "Payback period",
+    "Unit": "Years",
+    "Base Rate": "7",
+    "Basis": ""
+  },
+  {
+    "id": 8,
+    "key": "portion_of_debt_finance",
+    "Payment related assumption": "Portion of Debt Finance",
+    "Unit": "%",
+    "Base Rate": "0%",
+    "Basis": ""
+  }
+]

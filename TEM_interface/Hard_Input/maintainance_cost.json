@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "key": "civil_infrastructure_maintenance_charge",
+    "Maintenance Rate": "Civil Infrastructure Maintenance Charge",
+    "Unit": "%",
+    "Base Rate": "2.5%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 2,
+    "key": "electricals_maintenance_charge",
+    "Maintenance Rate": "Electricals Maintenance Charge",
+    "Unit": "%",
+    "Base Rate": "2.5%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 3,
+    "key": "mechanical_maintenance_charge",
+    "Maintenance Rate": "Mechanical Maintenance Charge",
+    "Unit": "%",
+    "Base Rate": "3.5%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 4,
+    "key": "amc_for_digitalization_setup_for_owner",
+    "Maintenance Rate": "AMC for Digitalization Setup for Owner",
+    "Unit": "%",
+    "Base Rate": "3.5%",
+    "Basis": "SRK Assumption"
+  }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "key": "administrative_cost",
+    "Unit Rates and Operating Costs": "Administrative Cost",
+    "Unit": "INR/t",
+    "Base Rate": "15",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 2,
+    "key": "environment_management_cost",
+    "Unit Rates and Operating Costs": "Environment Management Cost",
+    "Unit": "INR Cr.",
+    "Base Rate": "75",
+    "Basis": "SRK Assumption (2.5 escalation factor wrt capital cost)"
+  },
+  {
+    "id": 3,
+    "key": "environment_management_and_ohs_cost",
+    "Unit Rates and Operating Costs": "Environment Management & OHS Cost",
+    "Unit": "INR Cr.",
+    "Base Rate": "7.50",
+    "Basis": "INR 5/t"
+  },
+  {
+    "id": 4,
+    "key": "operating_cost_contingency",
+    "Unit Rates and Operating Costs": "Operating cost contingency",
+    "Unit": "%",
+    "Base Rate": "15%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 5,
+    "key": "capital_cost_contingency",
+    "Unit Rates and Operating Costs": "Capital cost contingency",
+    "Unit": "%",
+    "Base Rate": "15%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 6,
+    "key": "base_diesel_cost_5_percent_discount_on_bulk_purchase",
+    "Unit Rates and Operating Costs": "Base diesel cost (5% Discount on Bulk Purchase)",
+    "Unit": "INR/lit",
+    "Base Rate": "95.0",
+    "Basis": "As per circle rate"
+  },
+  {
+    "id": 7,
+    "key": "power_charge",
+    "Unit Rates and Operating Costs": "Power Charge",
+    "Unit": "INR/KVAh",
+    "Base Rate": "7.40",
+    "Basis": "As per state electric board charges"
+  },
+  {
+    "id": 8,
+    "key": "owner_number_of_person_to_avail_the_facility",
+    "Unit Rates and Operating Costs": "Owner - Number of person to avail the facility",
+    "Unit": "%",
+    "Base Rate": "50%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 9,
+    "key": "owner_per_person_cost",
+    "Unit Rates and Operating Costs": "Owner - Per Person Cost",
+    "Unit": "INR",
+    "Base Rate": "15,000",
+    "Basis": "Industrial Standards"
+  },
+  {
+    "id": 10,
+    "key": "mdo_number_of_person_to_avail_the_facility",
+    "Unit Rates and Operating Costs": "MDO - Number of person to avail the facility",
+    "Unit": "%",
+    "Base Rate": "75%",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 11,
+    "key": "mdo_per_person_cost",
+    "Unit Rates and Operating Costs": "MDO - Per Person Cost",
+    "Unit": "INR",
+    "Base Rate": "15,000",
+    "Basis": "Industrial Standards"
+  }
+]

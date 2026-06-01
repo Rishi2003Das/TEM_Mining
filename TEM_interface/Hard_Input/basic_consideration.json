@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "key": "project_start_date",
+    "General considerations": "Project Start Date",
+    "Unit": "date",
+    "Value": "01-Dec-24",
+    "Basis": "Standard Assumption based on Vesting Order"
+  },
+  {
+    "id": 2,
+    "key": "effective_start_date_for_model",
+    "General considerations": "Effective Start Date for Model",
+    "Unit": "date",
+    "Value": "01-Jan-26",
+    "Basis": "Standard Assumption based on Vesting Order"
+  },
+  {
+    "id": 3,
+    "key": "production_start_date",
+    "General considerations": "Production Start Date",
+    "Unit": "date",
+    "Value": "01-Jan-29",
+    "Basis": "Standard Assumption based on CMDPA"
+  },
+  {
+    "id": 4,
+    "key": "production_starting_year",
+    "General considerations": "Production Starting Year",
+    "Unit": "No.",
+    "Value": "5.0",
+    "Basis": "Standard Assumption based on CMDPA"
+  },
+  {
+    "id": 5,
+    "key": "total_coal",
+    "General considerations": "Total Coal",
+    "Unit": "Mt",
+    "Value": "226",
+    "Basis": "Estimated from Design"
+  },
+  {
+    "id": 6,
+    "key": "total_waste",
+    "General considerations": "Total Waste",
+    "Unit": "Mbcm",
+    "Value": "557",
+    "Basis": "Estimated from Design"
+  },
+  {
+    "id": 7,
+    "key": "rated_capacity",
+    "General considerations": "Rated Capacity",
+    "Unit": "Mtpa",
+    "Value": "15.0",
+    "Basis": "Mutual Discussion with Company"
+  },
+  {
+    "id": 8,
+    "key": "production_in_1st_year",
+    "General considerations": "Production in 1st year",
+    "Unit": "Mt",
+    "Value": "2.0",
+    "Basis": "Estimated from Design"
+  },
+  {
+    "id": 9,
+    "key": "life_of_mine",
+    "General considerations": "Life of Mine",
+    "Unit": "Year",
+    "Value": "19",
+    "Basis": "Estimated from Design"
+  },
+  {
+    "id": 10,
+    "key": "block_area",
+    "General considerations": "Block Area",
+    "Unit": "ha",
+    "Value": "1,048",
+    "Basis": "As per Tender"
+  }
+]

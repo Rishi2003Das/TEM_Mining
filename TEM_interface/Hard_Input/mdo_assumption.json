@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "key": "mdo_margin",
+    "Description": "MDO Margin",
+    "Unit": "%",
+    "Value": "20%",
+    "Basis": ""
+  },
+  {
+    "id": 2,
+    "key": "debt_percent_for_mdo",
+    "Description": "Debt % for MDO",
+    "Unit": "%",
+    "Value": "0%",
+    "Basis": ""
+  },
+  {
+    "id": 3,
+    "key": "mdo_rate",
+    "Description": "MDO Rate",
+    "Unit": "INR/t",
+    "Value": "",
+    "Basis": ""
+  },
+  {
+    "id": 4,
+    "key": "top_soil_removal_transportation_and_stacking_within_3_0km_lead",
+    "Description": "Top Soil Removal, Transportation & Stacking within 3.0km lead",
+    "Unit": "INR/bcm",
+    "Value": "70",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 5,
+    "key": "mdo_material_ob_ib_drillin_blasting_explosive_removal_transportation_and_stacking_within_3_0km",
+    "Description": "MDO Material OB/IB Drillin, Blasting, Explosive, Removal, Transportation & Stacking within 3.0km",
+    "Unit": "INR/bcm",
+    "Value": "90",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 6,
+    "key": "coal_drilling_blasting_surface_miner_explosive_removal_trasnportaion_and_stacking_within_3_0km",
+    "Description": "Coal Drilling, Blasting/Surface Miner/Explosive, Removal, Trasnportaion & Stacking within 3.0km",
+    "Unit": "INR/t",
+    "Value": "100",
+    "Basis": "SRK Assumption"
+  },
+  {
+    "id": 7,
+    "key": "ob_rehandling_cost",
+    "Description": "OB Rehandling Cost",
+    "Unit": "INR/bcm",
+    "Value": "70",
+    "Basis": "SRK Assumption"
+  }
+]
