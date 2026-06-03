@@ -269,5 +269,3 @@ Open [http://localhost:5173/](http://localhost:5173/) in your web browser.
 | **Precision** | All calculated financials are rounded and compared against the Excel workbook. |
 
 ---
-
-*Document Version 1.1 — Updated to reflect ReactJS, Node.js, Python calculation engine, and MongoDB architecture.*
