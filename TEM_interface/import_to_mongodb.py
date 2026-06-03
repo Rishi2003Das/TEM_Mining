@@ -19,7 +19,8 @@ JSON_FILES_MAP = {
      "govt_fees_charges.json": "govt_fees_charges",
      "payment_assumption.json": "payment_assumption",
      "mdo_assumption.json": "mdo_assumption",
-     "safety_slope_stability.json": "safety_slope_stability"
+     "safety_slope_stability.json": "safety_slope_stability",
+     "production_schedule_params.json": "production_schedule_params"
 }
 
 def import_json_to_mongodb():
@@ -38,7 +39,7 @@ def import_json_to_mongodb():
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     for filename, collection_name in JSON_FILES_MAP.items():
-        file_path = os.path.join(script_dir, filename)
+        file_path = os.path.join(script_dir, "Hard_Input", filename)
         if not os.path.exists(file_path):
             print(f"Error: File {filename} not found in {script_dir}. Skipping.")
             continue

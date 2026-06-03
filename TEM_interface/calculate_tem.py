@@ -50,6 +50,7 @@ def run_calculation():
     prod_coal = production_sched.get("Production Coal/Ore", {})
     waste_rem = production_sched.get("Waste (Topsoil + Overburden + Interburden)", {})
     waste_rehandle = production_sched.get("Waste - Rehandle", {})
+    topsoil_sched = production_sched.get("Topsoil", {})
     
     # Pre-operative
     pre_op_total = pre_operative_sched.get("Total", {})
@@ -111,6 +112,103 @@ def run_calculation():
     diesel_base_price = get_hard_input_val("unit_rates_opcosts", "base_diesel_cost_5_percent_discount_on_bulk_purchase")
     power_charge_rate = get_hard_input_val("unit_rates_opcosts", "power_charge")
     admin_cost_rate = get_hard_input_val("unit_rates_opcosts", "administrative_cost")
+    
+    # Production Schedule Parameters (new hard inputs)
+    partings_percent = get_hard_input_val("production_schedule_params", "partings_percent")
+    if partings_percent == 0:
+        partings_percent = 0.77  # fallback default
+    chp_rehandling_rate = get_hard_input_val("production_schedule_params", "chp_rehandling_rate")
+    if chp_rehandling_rate == 0:
+        chp_rehandling_rate = 0.05  # fallback default
+    chp_rehandling_capacity = get_hard_input_val("production_schedule_params", "chp_rehandling_capacity")
+    if chp_rehandling_capacity == 0:
+        chp_rehandling_capacity = 1.72  # fallback default
+    blasted_coal_fraction = get_hard_input_val("production_schedule_params", "blasted_coal_fraction")
+    if blasted_coal_fraction == 0:
+        blasted_coal_fraction = 0.15  # fallback default
+    sm_threshold_year = get_hard_input_val("production_schedule_params", "sm_threshold_year")
+    if sm_threshold_year == 0:
+        sm_threshold_year = 2  # fallback default
+    available_hours_per_year = get_hard_input_val("production_schedule_params", "available_hours_per_year")
+    if available_hours_per_year == 0:
+        available_hours_per_year = 7920  # fallback default
+    bench_height_coal = get_hard_input_val("production_schedule_params", "bench_height_coal")
+    bench_width_coal = get_hard_input_val("production_schedule_params", "bench_width_coal")
+    bench_height_ob = get_hard_input_val("production_schedule_params", "bench_height_ob_ib")
+    bench_width_ob = get_hard_input_val("production_schedule_params", "bench_width_ob_ib")
+    
+    print(f"  Production Schedule Params loaded:")
+    print(f"    Partings %: {partings_percent}, CHP Rate: {chp_rehandling_rate}, CHP Cap: {chp_rehandling_capacity}")
+    print(f"    Blasted Frac: {blasted_coal_fraction}, SM Threshold Yr: {sm_threshold_year}")
+    print(f"    Bench Coal: {bench_height_coal}m x {bench_width_coal}m, Bench OB: {bench_height_ob}m x {bench_width_ob}m")
+    
+    # Pre-compute derived schedules from Production Schedule hard inputs
+    # These are computed once (not per-scenario) since they depend on production data, not switches
+    computed_partings = {}      # Row 11: Partings = waste × partings_percent
+    computed_ob = {}            # Row 10: OB = waste - topsoil - part
+    computed_chp_reh = {}       # Row 12: CHP Rehandling = prod / chp_capacity × chp_rate
+    computed_blasted = {}       # Row 6:  Blasted coal
+    computed_sm_coal = {}       # Row 7:  Surface Miner coal
+    computed_stripping_ratio = {} # Row 19: YoY Stripping Ratio = waste / prod
+    computed_rehandling_cost = {} # Row 35: Rehandling Cost = mdo_rehandle_rate × waste_rehandle / 10
+    
+    clean_coal_prod = {}
+    clean_waste_rem = {}
+    clean_topsoil = {}
+    clean_waste_rehandle = {}
+    
+    for yr in YEAR_HEADERS:
+        yr_str = str(yr)
+        prod = float(prod_coal.get(yr_str, 0.0))
+        waste = float(waste_rem.get(yr_str, 0.0))
+        topsoil = float(topsoil_sched.get(yr_str, 0.0))
+        waste_reh = float(waste_rehandle.get(yr_str, 0.0))
+        
+        clean_coal_prod[yr_str] = round(prod, 6)
+        clean_waste_rem[yr_str] = round(waste, 6)
+        clean_topsoil[yr_str] = round(topsoil, 6)
+        clean_waste_rehandle[yr_str] = round(waste_reh, 6)
+        
+        # Partings (Row 11)
+        part = waste * partings_percent
+        computed_partings[yr_str] = round(part, 6)
+        
+        # OB (Row 10)
+        ob_val = waste - topsoil - part
+        computed_ob[yr_str] = round(max(ob_val, 0), 6)
+        
+        # CHP Rehandling (Row 12)
+        if chp_rehandling_capacity > 0:
+            chp_reh_val = prod / chp_rehandling_capacity * chp_rehandling_rate
+        else:
+            chp_reh_val = 0.0
+        computed_chp_reh[yr_str] = round(chp_reh_val, 6)
+        
+        # Blasted Coal (Row 6)
+        if yr <= 0:
+            blasted = 0.0
+        elif sm_threshold_year >= yr:
+            blasted = prod  # All coal is blasted before SM takes over
+        else:
+            blasted = prod * blasted_coal_fraction
+        computed_blasted[yr_str] = round(blasted, 6)
+        
+        # Surface Miner Coal (Row 7)
+        sm_coal_val = prod - blasted
+        computed_sm_coal[yr_str] = round(max(sm_coal_val, 0), 6)
+        
+        # Stripping Ratio (Row 19)
+        if prod > 0:
+            sr = waste / prod
+        else:
+            sr = 0.0
+        computed_stripping_ratio[yr_str] = round(sr, 6)
+        
+        # Rehandling Cost (Row 35)
+        reh_cost = mdo_rehandle_rate * waste_reh / 10.0
+        computed_rehandling_cost[yr_str] = round(reh_cost, 6)
+    
+    print("  Derived schedules computed (Partings, OB, CHP Reh, Blasted/SM Coal, Stripping Ratio, Rehandling Cost)")
     
     # 3. Perform calculation for all 8 combinations of switches
     # L4: Mining Mode -> "Departmental" or "MDO"
@@ -362,13 +460,17 @@ def run_calculation():
                 
                 # Contractor/MDO Cost
                 if mining_mode == "MDO":
-                    # MDO OB cost = OB * 90 / 10
-                    mdo_ob = waste * mdo_ob_rate / 10.0
+                    # MDO OB cost uses decomposed OB volume (waste - topsoil - partings)
+                    ob_vol = float(computed_ob.get(yr_str, 0.0))
+                    mdo_ob = ob_vol * mdo_ob_rate / 10.0
+                    # MDO Topsoil cost
+                    topsoil_vol = float(topsoil_sched.get(yr_str, 0.0))
+                    mdo_topsoil = topsoil_vol * mdo_topsoil_rate / 10.0
                     # MDO Rehandling = Rehandling BCM * 70 / 10
                     mdo_reh = waste_reh * mdo_rehandle_rate / 10.0
-                    # MDO Coal = Waste Removal * 100 / 10 (as in Excel Contractor OPEX Row 19!)
-                    mdo_coal = waste * mdo_coal_rate / 10.0
-                    mdo_contractor_val = mdo_ob + mdo_reh + mdo_coal
+                    # MDO Coal = Production Coal * 100 / 10
+                    mdo_coal = prod * mdo_coal_rate / 10.0
+                    mdo_contractor_val = mdo_ob + mdo_topsoil + mdo_reh + mdo_coal
                 else:
                     mdo_contractor_val = 0.0
                     
@@ -535,7 +637,20 @@ def run_calculation():
                     "total_fees": gov_total_fees,
                     "total_fees_with_mc_bank": gov_total_fees_with_mc_bank
                 },
-                "project_grand_total_opex": project_grand_total_opex
+                "project_grand_total_opex": project_grand_total_opex,
+                "production_schedule": {
+                    "coal_production": clean_coal_prod,
+                    "waste_volume": clean_waste_rem,
+                    "topsoil_volume": clean_topsoil,
+                    "waste_rehandling": clean_waste_rehandle,
+                    "partings": computed_partings,
+                    "ob_volume": computed_ob,
+                    "chp_rehandling": computed_chp_reh,
+                    "blasted_coal": computed_blasted,
+                    "sm_coal": computed_sm_coal,
+                    "stripping_ratio": computed_stripping_ratio,
+                    "rehandling_cost": computed_rehandling_cost
+                }
             }
         }
         

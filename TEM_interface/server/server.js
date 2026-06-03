@@ -121,6 +121,7 @@ const HARD_INPUT_COLLECTIONS = [
   "payment_assumption",
   "mdo_assumption",
   "safety_slope_stability",
+  "production_schedule_params",
 ];
 
 // GET /api/hard-inputs — all hard input collections
@@ -239,7 +240,8 @@ const VALUE_FIELDS = {
   govt_fees_charges: "Base Rate",
   payment_assumption: "Base Rate",
   mdo_assumption: "Value",
-  safety_slope_stability: "Value"
+  safety_slope_stability: "Value",
+  production_schedule_params: "Value"
 };
 
 // POST /api/admin/update-input — update a single parameter's value

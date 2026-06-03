@@ -24,6 +24,7 @@ const COLLECTION_LABELS: Record<string, string> = {
   payment_assumption: "Payment Assumptions",
   mdo_assumption: "MDO Assumptions",
   safety_slope_stability: "Safety & Slope Stability",
+  production_schedule_params: "Production Schedule Parameters",
 };
 
 const COLLECTION_VALUE_FIELDS: Record<string, string> = {
@@ -39,6 +40,7 @@ const COLLECTION_VALUE_FIELDS: Record<string, string> = {
   payment_assumption: "Base Rate",
   mdo_assumption: "Value",
   safety_slope_stability: "Value",
+  production_schedule_params: "Value",
 };
 
 function getValueField(collection: string): string {

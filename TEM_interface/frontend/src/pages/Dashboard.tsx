@@ -6,6 +6,7 @@ import { OpexBarChart } from "../components/OpexBarChart";
 import { GovtDonutChart } from "../components/GovtDonutChart";
 import { YearlyAreaChart } from "../components/YearlyAreaChart";
 import { BreakdownTable } from "../components/BreakdownTable";
+import { ProductionScheduleTable } from "../components/ProductionScheduleTable";
 
 export function Dashboard() {
   const {
@@ -18,6 +19,7 @@ export function Dashboard() {
     govtDonutData,
     yearlyChartData,
     kpis,
+    scenario,
   } = useScenarioData();
 
   if (loading) {
@@ -114,6 +116,16 @@ export function Dashboard() {
           data={yearlyChartData}
           showMdoContractor={isMDO}
         />
+      </div>
+
+      {/* Production Schedule Section */}
+      <div className="section-header" style={{ marginTop: "var(--space-xl)" }}>
+        <div className="section-header__bar" />
+        <h2 className="section-header__title">Production Schedule & Volumes</h2>
+      </div>
+
+      <div style={{ marginBottom: "var(--space-xl)" }}>
+        {scenario && <ProductionScheduleTable scenario={scenario} />}
       </div>
 
       {/* Breakdown Tables */}

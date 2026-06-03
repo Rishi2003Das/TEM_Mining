@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "key": "partings_percent",
+    "Description": "% Partings (fraction of total waste that is Partings)",
+    "Unit": "fraction",
+    "Value": "0.77",
+    "Basis": "Production Schedule Row 11, Col A — Excel cell A11"
+  },
+  {
+    "id": 2,
+    "key": "chp_rehandling_rate",
+    "Description": "CHP Rehandling Rate (fraction rehandled at Coal Handling Plant)",
+    "Unit": "fraction",
+    "Value": "0.05",
+    "Basis": "Production Schedule Row 12, Col A — Excel cell A12"
+  },
+  {
+    "id": 3,
+    "key": "chp_rehandling_capacity",
+    "Description": "CHP Rehandling Capacity (denominator in CHP rehandling formula)",
+    "Unit": "Mtpa",
+    "Value": "1.72",
+    "Basis": "Assumptions_Dashboard!D32"
+  },
+  {
+    "id": 4,
+    "key": "blasted_coal_fraction",
+    "Description": "Blasted Coal Fraction (% of coal from Drill & Blast when Surface Miner active)",
+    "Unit": "fraction",
+    "Value": "0.15",
+    "Basis": "Assumptions_Dashboard!D81"
+  },
+  {
+    "id": 5,
+    "key": "sm_threshold_year",
+    "Description": "Surface Miner Threshold Year (year when SM takes over from D&B)",
+    "Unit": "Year",
+    "Value": "2",
+    "Basis": "Assumptions_Dashboard!D80"
+  },
+  {
+    "id": 6,
+    "key": "available_hours_per_year",
+    "Description": "Total Available Hours per Year for Excavation",
+    "Unit": "hrs",
+    "Value": "7920",
+    "Basis": "Assumptions_Dashboard!D29"
+  },
+  {
+    "id": 7,
+    "key": "bench_height_coal",
+    "Description": "Bench Height — Coal",
+    "Unit": "m",
+    "Value": "5",
+    "Basis": "Production Schedule D30"
+  },
+  {
+    "id": 8,
+    "key": "bench_width_coal",
+    "Description": "Bench Width — Coal",
+    "Unit": "m",
+    "Value": "20",
+    "Basis": "Production Schedule D31"
+  },
+  {
+    "id": 9,
+    "key": "bench_height_ob_ib",
+    "Description": "Bench Height — OB/IB",
+    "Unit": "m",
+    "Value": "10",
+    "Basis": "Production Schedule D32"
+  },
+  {
+    "id": 10,
+    "key": "bench_width_ob_ib",
+    "Description": "Bench Width — OB/IB",
+    "Unit": "m",
+    "Value": "20",
+    "Basis": "Production Schedule D33"
+  }
+]

@@ -73,6 +73,19 @@ export interface ScenarioData {
       total_fees_with_mc_bank: YearlyValues;
     };
     project_grand_total_opex: YearlyValues;
+    production_schedule?: {
+      coal_production: YearlyValues;
+      waste_volume: YearlyValues;
+      topsoil_volume: YearlyValues;
+      waste_rehandling: YearlyValues;
+      partings: YearlyValues;
+      ob_volume: YearlyValues;
+      chp_rehandling: YearlyValues;
+      blasted_coal: YearlyValues;
+      sm_coal: YearlyValues;
+      stripping_ratio: YearlyValues;
+      rehandling_cost: YearlyValues;
+    };
   };
 }
 
