@@ -1,9 +1,10 @@
 import datetime
+import os
 import pymongo
 
 # MongoDB connection configuration
-CONNECTION_STRING = "mongodb+srv://rishikakalidas:KNris$0068@tem.khdmanp.mongodb.net/?appName=tem"
-DATABASE_NAME = "tem"
+CONNECTION_STRING = os.environ.get("MONGODB_URI", "mongodb+srv://rishikakalidas:KNris$0068@tem.khdmanp.mongodb.net/?appName=tem")
+DATABASE_NAME = os.environ.get("DATABASE_NAME", "tem")
 
 YEAR_HEADERS = [-4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
