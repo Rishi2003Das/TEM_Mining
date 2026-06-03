@@ -1,0 +1,826 @@
+
+================================================================================
+  PRODUCTION SCHEDULE SHEET — COMPLETE FORMULA & RELATION REFERENCE
+  File: Option 3_15 Mtpa_rev1_smg opt2 quality.xlsx
+  Sheet: Production Schedule
+================================================================================
+  Generated: 2026-06-03
+  Purpose:   Full documentation of all rows, formulas, hard inputs, calculated
+             fields and inter-sheet links in the Production Schedule sheet.
+             To be used as ground-truth for backend recalculation engine.
+================================================================================
+
+
+================================================================================
+SECTION 0 — GUIDE SHEET LEGEND (Colour System)
+================================================================================
+
+Cell Fill Colour → Meaning
+--------------------------
+  Blue       = Links to another tab (cross-sheet reference)
+  Red        = Hard Input (admin-editable value)
+  Black      = Calculation using links from current tab
+  Pink       = Links to external file
+  Green      = Calculation using Named Values / Arrays
+  Black      = Drop-down cell
+  Grey       = Not required / No data
+
+Tab Colour → Sheet Category
+----------------------------
+  Yellow     = Title, Revision History, Disclaimer, Guide
+  Purple     = Charts (output dashboards)
+  Red        = Summary sheets
+  Green      = Inputs / Quotes (Admin-editable)
+  Blue       = Calculation sheets (do NOT manually type)
+
+NOTE for Production Schedule sheet:
+  "FFFFFFCC" (light yellow) = HARD INPUT cell (manually entered data)
+  "00000000" (no fill)      = Calculated cell (formula or derived)
+
+
+================================================================================
+SECTION 1 — COLUMN STRUCTURE (Year Mapping)
+================================================================================
+
+Columns map to model years as follows:
+  Col A  = Hard-input rate for the row (e.g. 0.77 for Partings, 0.05 for CHP Rehandling)
+  Col B  = Row description / label
+  Col C  = Unit
+  Col D  = LOM (Life of Mine) Total / Average value
+  Col E  = Year -4  (Pre-production year 1 of 4)
+  Col F  = Year -3  (Pre-production year 2 of 4)
+  Col G  = Year -2  (Pre-production year 3 of 4)
+  Col H  = Year -1  (Pre-production year 4 of 4)
+  Col I  = Year  1  (first production year)
+  Col J  = Year  2
+  Col K  = Year  3
+  Col L  = Year  4
+  Col M  = Year  5
+  Col N  = Year  6
+  Col O  = Year  7
+  Col P  = Year  8
+  Col Q  = Year  9
+  Col R  = Year 10
+  Col S  = Year 11
+  Col T  = Year 12
+  Col U  = Year 13
+  Col V  = Year 14
+  Col W  = Year 15
+  Col X  = Year 16
+  Col Y  = Year 17
+  Col Z  = Year 18
+  Col AA = Year 19
+
+Year numbering (row 3) uses the formula:
+  = IF(col2 = 0, 0,
+      IF((col2 - Assumptions_Dashboard!D7) < 0,
+         col2 - Assumptions_Dashboard!D7,
+         col2 - (Assumptions_Dashboard!D7 - 1)))
+  where D7 = Production Starting Year = 5 (i.e., column 9 = Year 1, column 5 = Year -4)
+
+
+================================================================================
+SECTION 2 — HEADER / CONTROL ROWS (Rows 1–4)
+================================================================================
+
+ROW 1: Calendar Year Header
+  Formula pattern (Col F onward): = PrevCol + 366
+  Col E (start): = Assumptions_Dashboard!$D$5   [= Effective Start Date = 2026-01-01]
+  Purpose: Shows the calendar year of each column for display only.
+
+ROW 2: Absolute Year Counter (1, 2, 3, … 23)
+  Col E: = 1  (hard-coded start)
+  Formula pattern: = IF(MAX($E$2:PrevCol) <= (Assumptions_Dashboard!$D$11 + Assumptions_Dashboard!$D$6 - 2),
+                       PrevCol + 1, 0)
+  Purpose: Determines how many columns of data exist. Stops incrementing when
+           Life of Mine + pre-production years are exhausted.
+  Key inputs:
+    Assumptions_Dashboard!D11 = Pre-production period length
+    Assumptions_Dashboard!D6  = Production start year (calendar)
+
+ROW 3: Signed Project Year (-4, -3, -2, -1, 1, 2, ... 19)
+  DERIVED from ROW 2 using:
+  = IF(col2 = 0, 0,
+      IF((col2 - Assumptions_Dashboard!$D$7) < 0,
+         col2 - Assumptions_Dashboard!$D$7,
+         col2 - (Assumptions_Dashboard!$D$7 - 1)))
+  Key input: Assumptions_Dashboard!D7 = Production Starting Year = 5
+  Purpose: Converts absolute year number to signed project year for reporting.
+
+ROW 4: Total Available Hours for Excavation
+  Unit: hrs
+  LOM Total (D4): = MAX(E4:AD4) → 7,920 hrs/year
+  Year formula:   = IF(col3 <= 0, 0, Assumptions_Dashboard!$D$29)
+  [= Zero for pre-production years; uses D29 = 7,920 for all production years]
+  Key input: Assumptions_Dashboard!D29 = Total Available Hours / Year = 7,920 hrs
+  Meaning: Annual excavation hours available — 0 pre-production, 7,920 in operation.
+
+
+================================================================================
+SECTION 3 — PRODUCTION DATA ROWS (Rows 5–13)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 5: Production Coal/Ore
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mt
+  LOM Total (D5): = SUM(E5:AA5)  → 225.70 Mt
+  TYPE: HARD INPUT (yellow fill)  — All year cells are manually entered.
+  Values by year:
+    Year  1: 2.00  Mt
+    Year  2: 4.00  Mt
+    Year  3: 8.00  Mt
+    Year  4: 12.00 Mt
+    Year  5: 15.00 Mt
+    Year  6: 15.00 Mt
+    Year  7: 15.00 Mt
+    Year  8: 15.00 Mt
+    Year  9: 15.00 Mt
+    Year 10: 15.00 Mt
+    Year 11: 15.00 Mt
+    Year 12: 15.00 Mt
+    Year 13: 15.00 Mt
+    Year 14: 15.00 Mt
+    Year 15: 15.00 Mt
+    Year 16: 15.00 Mt
+    Year 17: 10.00 Mt
+    Year 18:  7.50 Mt
+    Year 19:  2.20 Mt
+  NOTE: Pre-production years (cols E–H) = 0 (no coal production).
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 6: Blasted Coal/Ore (a.k.a. Production Cost/Ore — Blasted Coal)
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mt
+  Col A (Rate):  = IF(Assumptions_Dashboard!L2 = "Surface Miner",
+                     Assumptions_Dashboard!D81, 100%)
+                 → 0.15 (i.e. 15% of total coal is blasted; Surface Miner = 85% of volume)
+  LOM Total (D6): = SUM(E6:AA6)  → 38.96 Mt
+  FORMULA (each year): = IF(Assumptions_Dashboard!$D$80 >= colYear, colYear_prod,
+                             colYear_prod * $A$6)
+  Meaning:
+    If the Surface Miner ramp-up threshold year (D80) >= current project year,
+    all production is blasted (100%). Otherwise, only $A$6 fraction (15%) is blasted.
+  Key inputs:
+    Assumptions_Dashboard!D80 = Surface Miner threshold year (when SM takes over)
+    Assumptions_Dashboard!D81 = Blasted fraction (when SM is active) = 0.15
+    $A$6                       = 0.15 (15% blasted if Surface Miner is in use)
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 7: Surface Miner Coal/Ore
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mt
+  LOM Total (D7): = SUM(E7:AA7)  → 186.75 Mt
+  FORMULA (each year): = colYear_production - colYear_blasted
+                       = col5 - col6
+  Meaning: Production not done by drill-and-blast = Surface Miner excavation.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 8: Waste (Topsoil + Overburden + Interburden)
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mbcm
+  LOM Total (D8): = SUM(E8:AA8)
+  TYPE: HARD INPUT (yellow fill) — All year cells manually entered.
+  Values by year (from uploaded image):
+    Year  1: 11.5  Mbcm
+    Year  2:  9.5  Mbcm
+    Year  3: 17.2  Mbcm
+    Year  4: 36.8  Mbcm
+    Year  5: 35.4  Mbcm
+    Year  6: 47.5  Mbcm
+    Year  7: 43.4  Mbcm
+    Year  8: 36.3  Mbcm
+    Year  9: 37.9  Mbcm
+    Year 10: 33.8  Mbcm
+    Year 11: 38.1  Mbcm
+    Year 12: 29.0  Mbcm
+    Year 13: 25.4  Mbcm
+    Year 14: 31.6  Mbcm
+    Year 15: 31.5  Mbcm
+    Year 16: 40.1  Mbcm
+    Year 17: 24.7  Mbcm
+    Year 18:  4.3  Mbcm
+    Year 19:  1.3  Mbcm
+  (Pre-production values also present; refer to Excel for exact values.)
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 9: Topsoil
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mbcm
+  TYPE: HARD INPUT (yellow fill) — All year cells manually entered.
+  Values by year (sample; 15% of waste volume approx.):
+    Year  1:  0.077 Mbcm
+    Year  2:  0.064 Mbcm
+    Year  3:  0.161 Mbcm
+    Year  4:  0.161 Mbcm
+    Year  5:  0.094 Mbcm  (etc.)
+    [Values decline from Year 5 onward as topsoil decreases]
+  Note: Topsoil is separately tracked for haulage cost difference.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 10: OB (Overburden)
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mbcm
+  LOM Total (D10): = SUM(E10:AA10)  → 121.47 Mbcm
+  FORMULA (each year): = col8 - col9 - col11
+                       = Total Waste - Topsoil - Partings
+  Meaning: True Overburden = Total Waste less Topsoil and Partings volumes.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 11: Partings  [HARD INPUT — RATE IN COL A]
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mbcm
+  Col A [Hard Input Rate]: 0.77  (= 77% of total waste volume is Partings)
+  Color of Col A: FFFFFFCC (YELLOW — HARD INPUT)
+  LOM Total (D11): = SUM(E11:AA11)  → 412.25 Mbcm
+  FORMULA (each year): = col8 * $A$11
+                       = Total Waste * 0.77
+  Meaning: Annual partings volume = 77% of total annual waste (Topsoil + OB + IB).
+
+  *** HARD INPUT: $A$11 = 0.77 (77% of waste is partings)
+      This is the "% Partings" rate that drives the Partings sub-schedule.
+      Value: 0.77 (constant for all years).
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 12: Rehandling at CHP  [HARD INPUT — RATE IN COL A]
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mbcm
+  Col A [Hard Input Rate]: 0.05  (= 5% of rated capacity = CHP rehandling fraction)
+  Color of Col A: FFFFFFCC (YELLOW — HARD INPUT)
+  LOM Total (D12): = SUM(E12:AA12)  → 6.56 Mbcm
+  FORMULA (each year): = colYear_production / Assumptions_Dashboard!$D$32 * $A$12
+                       = (Annual Coal Production / Rated Capacity) * 0.05
+  Example — Year 5: = 15.0 / 1.72 * 0.05 ≈ 0.436 Mbcm
+
+  *** HARD INPUT 1: $A$12 = 0.05 (5% rehandling rate at CHP)
+      Meaning: For every Mbcm of rated-capacity utilisation,
+               5% extra material is rehandled at the Coal Handling Plant.
+      This value is constant for all years.
+
+  *** HARD INPUT 2: Assumptions_Dashboard!D32 = 1.72
+      Meaning: Base rated capacity value used as denominator in CHP rehandling
+               formula. This is the "Rated Capacity" for the CHP rehandling
+               normalisation.
+  
+  Relationship: Rehandling at CHP (Mbcm/yr) = Production(Mt/yr) / D32 × 0.05
+
+  NOTE: Pre-production years (Year -4 to Year -1) are zero (formula still applies
+        but coal production = 0, so result = 0).
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 13: Waste - Rehandle
+────────────────────────────────────────────────────────────────────────────────
+  Unit: Mbcm
+  LOM Total (D13): = SUM(E13:AO13)  → 75.64 Mbcm
+  TYPE: HARD INPUT (yellow fill) — All year cells are manually entered.
+  Values by year (only years with non-zero values):
+    Year  1–6:  0 Mbcm  (no rehandling in early years)
+    Year  7:  11.85 Mbcm
+    Year  8:  11.85 Mbcm
+    Year  9:  11.85 Mbcm
+    Year 10:  11.85 Mbcm
+    Year 11:   7.06 Mbcm
+    Year 12:   7.06 Mbcm
+    Year 13:   7.06 Mbcm
+    Year 14:   7.06 Mbcm
+    Year 15–19: 0 Mbcm  (no rehandling in later years)
+  Meaning: Waste (OB/IB) that needs to be moved twice — first deposited, then
+           rehandled at a later stage. This represents the "re-digging" cost.
+  NOTE: This row feeds directly into Rehandling Cost (Row 35) and the
+        MDO Rehandling OPEX calculations.
+
+
+================================================================================
+SECTION 4 — COAL QUALITY PARAMETERS (Rows 14–17)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 14: GCV (ADB) — Gross Calorific Value, Air-Dry Basis
+────────────────────────────────────────────────────────────────────────────────
+  Unit: kcal/kg
+  LOM Average (D14): = SUMPRODUCT(E5:AA5, E14:AA14) / D5
+                     = Production-weighted average GCV
+                     → 3,113 kcal/kg (LOM weighted average)
+  TYPE: HARD INPUT (yellow fill) — All year cells are manually entered.
+  Values by year:
+    Year  1: 3,210  kcal/kg
+    Year  2: 3,150  kcal/kg
+    Year  3: 3,160  kcal/kg
+    Year  4: 3,150  kcal/kg
+    Year  5: 3,120  kcal/kg
+    Year  6: 3,190  kcal/kg
+    Year  7: 3,090  kcal/kg
+    Year  8: 3,160  kcal/kg
+    Year  9: 3,190  kcal/kg
+    Year 10: 3,280  kcal/kg
+    Year 11: 3,280  kcal/kg
+    Year 12: 3,020  kcal/kg
+    Year 13: 3,120  kcal/kg
+    Year 14: 3,100  kcal/kg
+    Year 15: 2,850  kcal/kg
+    Year 16: 2,970  kcal/kg
+    Year 17: 3,020  kcal/kg
+    Year 18: 3,040  kcal/kg
+    Year 19: 3,200  kcal/kg
+  Meaning: GCV (ADB) grade drives coal price (via Coal Price sheet),
+           revenue sharing, and royalty calculations in the Government sheet.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 15: Relative Density (RD)
+────────────────────────────────────────────────────────────────────────────────
+  Unit: g/cm³
+  TYPE: Hard input (year-by-year, not populated in current data extract)
+  Purpose: Used in volume-to-tonnage conversions.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 16: Raw Ash
+────────────────────────────────────────────────────────────────────────────────
+  Unit: %
+  TYPE: Hard input (year-by-year)
+  Purpose: Coal quality parameter for beneficiation calculations.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 17: Moisture
+────────────────────────────────────────────────────────────────────────────────
+  Unit: %
+  TYPE: Hard input (year-by-year)
+  Purpose: Coal quality parameter.
+
+
+================================================================================
+SECTION 5 — STRIPPING RATIO (Rows 18–20)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 18: Stripping Ratio — Header Row
+────────────────────────────────────────────────────────────────────────────────
+  (Section label only, no data in this row)
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 19: YoY (Year-on-Year Stripping Ratio)
+────────────────────────────────────────────────────────────────────────────────
+  Unit: cum/t  (cubic metres per tonne)
+  FORMULA (each year): = col8 / col5
+                       = Waste_Mbcm / Production_Mt
+  Example — Year 1: 11.5 / 2.0 = 5.73 cum/t
+  Meaning: Annual stripping ratio — how many bcm of waste per tonne of coal.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 20: Cumulative Stripping Ratio
+────────────────────────────────────────────────────────────────────────────────
+  Unit: cum/t
+  LOM Total (D20): = 2.37  (LOM average stripping ratio)
+  FORMULA:
+    Year 1: 11.5 / 2.0 = 5.73 cum/t  (same as YoY)
+    Year 2: (11.5 + 9.5) / (2.0 + 4.0) = 3.50 cum/t
+    Subsequent years: = SUM(waste up to this year) / SUM(production up to this year)
+  Full values by year (from image):
+    Year  1: 5.73 cum/t
+    Year  2: 3.50 cum/t
+    Year  3: 2.18 cum/t
+    Year  4: 3.87 cum/t
+    Year  5: 2.38 cum/t
+    Year  6: 3.58 cum/t
+    Year  7: 2.93 cum/t
+    Year  8: 2.42 cum/t
+    Year  9: 2.52 cum/t
+    Year 10: 2.25 cum/t
+    Year 11: 2.54 cum/t
+    Year 12: 1.93 cum/t
+    Year 13: 1.70 cum/t
+    Year 14: 2.11 cum/t
+    Year 15: 2.10 cum/t
+    Year 16: 2.67 cum/t
+    Year 17: 2.47 cum/t
+    Year 18: 0.57 cum/t
+    Year 19: 0.59 cum/t
+
+
+================================================================================
+SECTION 6 — HAUL DISTANCE (Rows 22–27)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 22: Haul Distance — Header
+────────────────────────────────────────────────────────────────────────────────
+  (Section label row)
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 23: Waste Haul Distance (ROM — Run of Mine)
+────────────────────────────────────────────────────────────────────────────────
+  Unit: km
+  TYPE: HARD INPUT (yellow fill) — manually entered per year.
+  Values (from image):
+    Year  1:  1.6 km
+    Year  2:  1.6 km
+    Year  3:  2.0 km
+    Year  4:  2.5 km
+    Year  5:  2.6 km
+    Year  6:  2.8 km
+    Year  7:  3.0 km
+    Year  8:  3.2 km
+    Year  9:  3.4 km
+    Year 10:  3.5 km
+    (etc., gradually increasing as pit deepens)
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 24: ROM (Coal) Haul Distance
+────────────────────────────────────────────────────────────────────────────────
+  Unit: km
+  TYPE: HARD INPUT — year-by-year manually entered.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 25: In-Pit Haul Distance
+────────────────────────────────────────────────────────────────────────────────
+  Unit: km
+  TYPE: HARD INPUT — year-by-year manually entered.
+  Values increase from 0.8 km (Year 4) up to ~2.0 km (Year 10), then decline.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 26: Ex-Pit Haul Distance
+────────────────────────────────────────────────────────────────────────────────
+  Unit: km
+  TYPE: HARD INPUT — year-by-year manually entered.
+  Values range from ~1.5 km to ~1.8 km across production years.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 27: Rehandling Haul Distance
+────────────────────────────────────────────────────────────────────────────────
+  Unit: km
+  TYPE: HARD INPUT — only populated in years where Waste-Rehandle > 0.
+  Value: 3.0 km (constant for Years 7–14, which are the rehandling years)
+  Meaning: Average haulage distance for the rehandled waste (OB/IB).
+
+
+================================================================================
+SECTION 7 — BENCH SPECIFICATIONS (Rows 29–33)
+================================================================================
+
+These are single HARD INPUT values in Col D (LOM column), applying to all years.
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 30: Bench Height — Coal
+────────────────────────────────────────────────────────────────────────────────
+  Unit: m
+  HARD INPUT (D30): 5 m
+  Reference: Assumptions_Dashboard!D32 = 1.72 also references this section.
+  Also: Other sheets reference Production Schedule!D30 for bench height:
+    e.g., Contractor OPEX sheet reads ='Production Schedule'!D30
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 31: Bench Width — Coal
+────────────────────────────────────────────────────────────────────────────────
+  Unit: m
+  HARD INPUT (D31): 20 m
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 32: Bench Height — OB/IB
+────────────────────────────────────────────────────────────────────────────────
+  Unit: m
+  HARD INPUT (D32): 10 m
+  Reference: Other sheets use 'Production Schedule'!D32
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 33: Bench Width — OB/IB
+────────────────────────────────────────────────────────────────────────────────
+  Unit: m
+  HARD INPUT (D33): 20 m
+
+
+================================================================================
+SECTION 8 — REHANDLING COST (Row 35)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+ROW 35: Rehandling Cost
+────────────────────────────────────────────────────────────────────────────────
+  Unit: INR Cr
+  LOM Total (D35): = SUM(E35:AH35)  → 529.48 INR Cr
+  FORMULA (each year): = Assumptions_Dashboard!$D$153 * col13 / 10
+                       = MDO Rehandling Rate (INR/bcm) × Waste_Rehandle(Mbcm) / 10
+  Example — Year 7:  = 70 × 11.85 / 10  = 82.95 INR Cr
+  Example — Year 11: = 70 ×  7.06 / 10  = 49.42 INR Cr
+  Pre-production & Years 1–6 and 15–19: = 0 (no rehandling in those years)
+
+  Key input: Assumptions_Dashboard!D153 = 70  (MDO Rehandling Rate, INR/bcm)
+             This is a HARD INPUT on the Assumptions Dashboard.
+
+  Inter-sheet links from Rehandling Cost (Row 35):
+    → Owner OPEX sheet uses Contractor OPEX!E18, which reads from this rehandling
+      schedule to compute owner rehandling OPEX costs.
+    → Contractor OPEX sheet also uses Row 13 (Waste - Rehandle) and Row 35 values.
+
+  Note on confusion: The Production Schedule distinguishes between:
+    (a) Rehandling at CHP (Row 12)  — small volume (~0.44 Mbcm/yr at steady state)
+        relating to coal rehandling at the plant for loading/processing.
+    (b) Waste - Rehandle (Row 13)   — large volume (7–12 Mbcm) in Years 7–14,
+        relating to previously deposited OB/IB that must be moved again.
+    Both appear in OPEX calculations but via different pathways.
+
+
+================================================================================
+SECTION 9 — REFERENCE TABLE (Rows 40–61): Diluted / Rounded / Cumulative
+================================================================================
+
+This section is a summary table showing coal production by year in a condensed
+format, and is NOT used directly in calculations (it is a display section).
+
+Row 40 headers: Diluted | Rounded | Cumulative
+Row 41 sub-headers: Year | Coal (Mt) | GCV Dil (Kcal/Kg) | GCV Dil (Kcal/Kg) | Coal (Mt) | Waste (Mcum)
+Rows 42–60: One row per production year (Years 1–19)
+
+  Column K = Coal (Mt)  — Hard input values matching Row 5
+  Column L = GCV Diluted (Kcal/Kg) — Hard input values matching Row 14
+  Column M = GCV Rounded = ROUND(L42, -1)  [rounded to nearest 10]
+  Column N = Cumulative Coal (Mt) = N_prev + K_current   [running total]
+  Column O = Waste (Mcum) — Hard input values (same data as Row 8)
+
+Row 61 (Total row):
+  K61 = SUM(K42:K60)  = Total coal production (LOM)
+  L61 = SUMPRODUCT(K42:K60, L42:L60) / SUM(K42:K60)  = Production-weighted avg GCV
+  M61 = ROUND(SUMPRODUCT(K42:K60, M42:M60) / SUM(K42:K60), -1)  = Rounded LOM avg GCV
+  O61 = SUM(O42:O60)  = Total LOM waste (Mcum)
+
+
+================================================================================
+SECTION 10 — INTER-SHEET RELATIONSHIPS FROM PRODUCTION SCHEDULE
+================================================================================
+
+The Production Schedule sheet is a PRIMARY DATA PROVIDER. Many downstream
+calculation sheets pull data from it directly.
+
+FROM Production Schedule → TO Government Sheet:
+  Government!E2  ← 'Production Schedule'!E1   [Year label / calendar year]
+  Government!E3  ← 'Production Schedule'!E3   [Project year number (signed)]
+  Government!E4  ← 'Production Schedule'!E5   [Coal production (Mt)]
+
+FROM Production Schedule → TO Owner OPEX Sheet (via Contractor OPEX):
+  Owner OPEX    reads Contractor OPEX row 18 (Rehandling),
+                which derives from Production Schedule rows 13 and 35.
+
+FROM Production Schedule → TO Assumptions_Dashboard (derived values):
+  Assumptions_Dashboard!D10 = =MAX('Production Schedule'!E5:AM5)
+  [Rated Capacity = max annual production from schedule]
+
+  Assumptions_Dashboard!D12 = =MAX('Production Schedule'!E3:AM3)
+  [Life of Mine = max project year from schedule]
+
+FROM Production Schedule → TO Contractor OPEX Sheet:
+  Contractor OPEX reads from Production Schedule:
+    Row 5  (Production Coal/Ore, Mt)   for MDO Coal cost calculation
+    Row 8  (Total Waste, Mbcm)         for MDO OB/Topsoil cost calculation
+    Row 9  (Topsoil, Mbcm)             for MDO Topsoil cost calculation
+    Row 13 (Waste Rehandle, Mbcm)      for MDO Rehandling cost calculation
+
+FROM Production Schedule → TO Fleet Sheet (Equipment sizing):
+  Fleet reads production and waste volumes to size equipment fleet.
+
+FROM Production Schedule → TO Productivity Sheet:
+  Productivity uses Production (Row 5) and Waste (Row 8) to size equipment
+  cycle times, and references Haul Distances (Rows 23–27).
+
+
+================================================================================
+SECTION 11 — HARD INPUT SUMMARY FOR PRODUCTION SCHEDULE
+================================================================================
+
+The following are ALL hard inputs (manually entered cells) in the Production
+Schedule sheet that drive the calculations. These must be admin-editable in
+the web application backend.
+
+GLOBAL RATE INPUTS (Col A of respective rows):
+┌─────────────────────────────────┬──────┬──────────────────────────────────────────┐
+│ Row / Parameter                 │ Val  │ Meaning                                  │
+├─────────────────────────────────┼──────┼──────────────────────────────────────────┤
+│ A11 — % Partings                │ 0.77 │ 77% of total waste volume is Partings    │
+│ A12 — Rehandling at CHP Rate    │ 0.05 │ 5% of (Production / Rated Cap) rehandled │
+└─────────────────────────────────┴──────┴──────────────────────────────────────────┘
+
+YEAR-BY-YEAR HARD INPUTS (yellow-filled year cells):
+┌────────────────────────────────────────────┬──────────────────────────────────────┐
+│ Row / Parameter                            │ Notes                                │
+├────────────────────────────────────────────┼──────────────────────────────────────┤
+│ Row 5  — Production Coal/Ore (Mt)          │ 19 values, one per production year   │
+│ Row 8  — Total Waste (Mbcm)                │ Includes Topsoil + OB + IB + Part.   │
+│ Row 9  — Topsoil (Mbcm)                    │ Decreasing over mine life            │
+│ Row 13 — Waste - Rehandle (Mbcm)           │ Non-zero only in Years 7–14          │
+│ Row 14 — GCV ADB (kcal/kg)                 │ Coal grade per year (varies)         │
+│ Row 23 — Waste Haul Distance (km)          │ Increasing as pit deepens            │
+│ Row 24 — ROM Coal Haul Distance (km)       │ Year-by-year                         │
+│ Row 25 — In-Pit Haul Distance (km)         │ Year-by-year                         │
+│ Row 26 — Ex-Pit Haul Distance (km)         │ Year-by-year                         │
+│ Row 27 — Rehandling Haul Distance (km)     │ Fixed at 3.0 km for Years 7–14       │
+└────────────────────────────────────────────┴──────────────────────────────────────┘
+
+BENCH SPECIFICATIONS (single values, Col D):
+┌─────────────────────────────────┬──────┬──────────────────────────────────────────┐
+│ Row / Parameter                 │ Val  │ Notes                                    │
+├─────────────────────────────────┼──────┼──────────────────────────────────────────┤
+│ D30 — Bench Height - Coal       │  5 m │ Used in Fleet / Productivity calcs       │
+│ D31 — Bench Width - Coal        │ 20 m │ Used in bench geometry calculations      │
+│ D32 — Bench Height - OB/IB      │ 10 m │ Also used by Assumptions_Dashboard!D32   │
+│ D33 — Bench Width - OB/IB       │ 20 m │ Used in bench geometry calculations      │
+└─────────────────────────────────┴──────┴──────────────────────────────────────────┘
+
+CROSS-SHEET HARD INPUTS FEEDING INTO PRODUCTION SCHEDULE FORMULAS:
+┌───────────────────────────────────────┬───────┬─────────────────────────────────────┐
+│ Cell                                  │ Value │ Used in Row / Purpose               │
+├───────────────────────────────────────┼───────┼─────────────────────────────────────┤
+│ Assumptions_Dashboard!D5              │ 2026  │ Row 1: Effective start year         │
+│ Assumptions_Dashboard!D7              │ 5     │ Row 3: Production starting year     │
+│ Assumptions_Dashboard!D29             │ 7,920 │ Row 4: Total available hours/year   │
+│ Assumptions_Dashboard!D32             │ 1.72  │ Row 12: CHP rehandling denominator  │
+│ Assumptions_Dashboard!D80             │ (yr)  │ Row 6: SM ramp-up threshold year    │
+│ Assumptions_Dashboard!D81             │ 0.15  │ Row 6: Blasted coal fraction (SM)   │
+│ Assumptions_Dashboard!D153            │ 70    │ Row 35: MDO Rehandling rate INR/bcm │
+└───────────────────────────────────────┴───────┴─────────────────────────────────────┘
+
+
+================================================================================
+SECTION 12 — CALCULATED ROWS (Non-Hard-Input Formulas)
+================================================================================
+
+These rows in Production Schedule are COMPUTED (not hard-input), derived from
+the rows above and from cross-sheet references.
+
+┌──────┬──────────────────────────────────┬──────────────────────────────────────────────────┐
+│ Row  │ Name                             │ Formula                                          │
+├──────┼──────────────────────────────────┼──────────────────────────────────────────────────┤
+│  3   │ Project Year (signed)            │ IF(col2=0,0, IF(col2-D7<0, col2-D7, col2-(D7-1)))│
+│  4   │ Available Hours/year             │ IF(col3<=0, 0, Assumptions_Dashboard!D29)         │
+│  6   │ Blasted Coal/Ore (Mt)            │ IF(D80>=col3, col5, col5 × 0.15)                 │
+│  7   │ Surface Miner Coal/Ore (Mt)      │ col5 - col6                                      │
+│ 10   │ OB (Mbcm)                        │ col8 - col9 - col11                              │
+│ 11   │ Partings (Mbcm)                  │ col8 × $A$11  [= waste × 0.77]                  │
+│ 12   │ Rehandling at CHP (Mbcm)         │ col5 / Dash!D32 × $A$12  [= prod/1.72 × 0.05]   │
+│ 14   │ GCV LOM Average                  │ SUMPRODUCT(prod_years, GCV_years) / D5            │
+│ 19   │ YoY Stripping Ratio (cum/t)      │ col8 / col5                                      │
+│ 20   │ Cumulative Stripping Ratio       │ SUM(waste up to yr) / SUM(prod up to yr)          │
+│ 35   │ Rehandling Cost (INR Cr)         │ Dash!D153 × col13 / 10  [= 70 × rehandle / 10]  │
+└──────┴──────────────────────────────────┴──────────────────────────────────────────────────┘
+
+
+================================================================================
+SECTION 13 — NOTABLE FORMULA ERRORS / IMPROVEMENTS NEEDED IN BACKEND
+================================================================================
+
+The following are mismatches or gaps identified between the current backend
+(calculate_tem.py) and the actual Excel Production Schedule formulas:
+
+1. PARTINGS CALCULATION (Row 11):
+   CURRENT BACKEND: Not computed at all — Partings is not stored as a separate
+   schedule in MongoDB.
+   EXCEL FORMULA: Partings = Total Waste × 0.77  (Row 11 = Row 8 × A11)
+   FIX NEEDED: Store Partings in MongoDB as a separate schedule with formula:
+               partings[year] = waste[year] × 0.77
+
+2. REHANDLING AT CHP (Row 12):
+   CURRENT BACKEND: Not computed — CHP rehandling volume is not stored.
+   EXCEL FORMULA: CHP_rehandling = (Production / Rated_Capacity) × 0.05
+                  = (Row5 / Assumptions_Dashboard.D32) × A12
+   FIX NEEDED: Add CHP rehandling volume to MongoDB production_schedule collection.
+
+3. OB CALCULATION (Row 10):
+   CURRENT BACKEND: Uses "Waste (Topsoil + Overburden + Interburden)" as the
+   combined waste number for MDO OB cost.
+   EXCEL FORMULA: OB = Total_Waste - Topsoil - Partings
+                     = Row8 - Row9 - Row11
+   FIX NEEDED: MDO OB cost should use OB only (not total waste including partings),
+               or the total waste number must be reconciled with the formula.
+
+4. REHANDLING COST (Row 35):
+   CURRENT BACKEND: MDO Rehandling = waste_rehandle × mdo_rehandle_rate / 10
+                    where waste_rehandle comes from MongoDB
+   EXCEL FORMULA: Rehandling_Cost = D153 × Row13 / 10  ✓ (This matches!)
+   STATUS: Correct — only check that Row 13 values in MongoDB match the Excel.
+
+5. BLASTED vs SURFACE MINER COAL (Rows 6–7):
+   CURRENT BACKEND: Does not distinguish between blasted and surface miner coal.
+   EXCEL FORMULA: Uses IF(D80 >= year, production, production × 0.15)
+   IMPACT: This affects Explosives OPEX (only blasted coal needs explosives).
+   FIX NEEDED: Explosive cost should be based on Row 6 (Blasted Coal), not Row 5.
+
+6. WASTE REHANDLE YEARS:
+   CURRENT BACKEND: Uses the "waste_rehandling" schedule from MongoDB.
+   EXCEL VALUES: Only Years 7–14 have non-zero values (11.85 and 7.06 Mbcm).
+   CHECK: Verify MongoDB production_schedule "Waste - Rehandle" document matches
+          these values for each year.
+
+7. STRIPPING RATIO:
+   CURRENT BACKEND: Not used in calculations.
+   EXCEL: Used in Fleet and Productivity sheets for equipment sizing.
+   STATUS: No immediate action needed for financial model.
+
+
+================================================================================
+SECTION 14 — SUMMARY OF ALL HARD INPUTS AND THEIR VALUES
+================================================================================
+
+This is the master list of hard-input values from the Production Schedule sheet
+that must be stored as admin-configurable inputs in the web application.
+
+CATEGORY A: RATE CONSTANTS (Col A of each row — apply to all years)
+─────────────────────────────────────────────────────────────────────
+  % Partings (A11)              = 0.77  (77% of total waste is partings)
+  CHP Rehandling Rate (A12)     = 0.05  (5% rehandling rate at CHP)
+
+CATEGORY B: YEAR-BY-YEAR PRODUCTION SCHEDULE (Row 5 — Production Coal/Ore, Mt)
+────────────────────────────────────────────────────────────────────────────────
+  Year  1: 2.0   Mt
+  Year  2: 4.0   Mt
+  Year  3: 8.0   Mt
+  Year  4: 12.0  Mt
+  Year  5: 15.0  Mt
+  Year  6: 15.0  Mt
+  Year  7: 15.0  Mt
+  Year  8: 15.0  Mt
+  Year  9: 15.0  Mt
+  Year 10: 15.0  Mt
+  Year 11: 15.0  Mt
+  Year 12: 15.0  Mt
+  Year 13: 15.0  Mt
+  Year 14: 15.0  Mt
+  Year 15: 15.0  Mt
+  Year 16: 15.0  Mt
+  Year 17: 10.0  Mt
+  Year 18:  7.5  Mt
+  Year 19:  2.2  Mt
+
+CATEGORY C: YEAR-BY-YEAR TOTAL WASTE (Row 8, Mbcm)
+───────────────────────────────────────────────────
+  Year  1: 11.5  Mbcm
+  Year  2:  9.5  Mbcm
+  Year  3: 17.2  Mbcm
+  Year  4: 36.8  Mbcm
+  Year  5: 35.4  Mbcm
+  Year  6: 47.5  Mbcm
+  Year  7: 43.4  Mbcm
+  Year  8: 36.3  Mbcm
+  Year  9: 37.9  Mbcm
+  Year 10: 33.8  Mbcm
+  Year 11: 38.1  Mbcm
+  Year 12: 29.0  Mbcm
+  Year 13: 25.4  Mbcm
+  Year 14: 31.6  Mbcm
+  Year 15: 31.5  Mbcm
+  Year 16: 40.1  Mbcm
+  Year 17: 24.7  Mbcm
+  Year 18:  4.3  Mbcm
+  Year 19:  1.3  Mbcm
+
+CATEGORY D: YEAR-BY-YEAR GCV (Row 14, kcal/kg)
+─────────────────────────────────────────────────
+  Year  1: 3,210 kcal/kg
+  Year  2: 3,150 kcal/kg
+  Year  3: 3,160 kcal/kg
+  Year  4: 3,150 kcal/kg
+  Year  5: 3,120 kcal/kg
+  Year  6: 3,190 kcal/kg
+  Year  7: 3,090 kcal/kg
+  Year  8: 3,160 kcal/kg
+  Year  9: 3,190 kcal/kg
+  Year 10: 3,280 kcal/kg
+  Year 11: 3,280 kcal/kg
+  Year 12: 3,020 kcal/kg
+  Year 13: 3,120 kcal/kg
+  Year 14: 3,100 kcal/kg
+  Year 15: 2,850 kcal/kg
+  Year 16: 2,970 kcal/kg
+  Year 17: 3,020 kcal/kg
+  Year 18: 3,040 kcal/kg
+  Year 19: 3,200 kcal/kg
+
+CATEGORY E: YEAR-BY-YEAR WASTE REHANDLE (Row 13, Mbcm)
+────────────────────────────────────────────────────────
+  Years  1–6:   0.00 Mbcm (no rehandling)
+  Year   7:    11.85 Mbcm
+  Year   8:    11.85 Mbcm
+  Year   9:    11.85 Mbcm
+  Year  10:    11.85 Mbcm
+  Year  11:     7.06 Mbcm
+  Year  12:     7.06 Mbcm
+  Year  13:     7.06 Mbcm
+  Year  14:     7.06 Mbcm
+  Years 15–19:  0.00 Mbcm (no rehandling)
+
+CATEGORY F: BENCH SPECIFICATIONS (Single fixed values, Col D)
+──────────────────────────────────────────────────────────────
+  Bench Height – Coal   (D30): 5 m
+  Bench Width – Coal    (D31): 20 m
+  Bench Height – OB/IB  (D32): 10 m
+  Bench Width – OB/IB   (D33): 20 m
+
+CATEGORY G: CROSS-SHEET HARD INPUTS USED IN PRODUCTION SCHEDULE
+────────────────────────────────────────────────────────────────
+  Assumptions_Dashboard!D5   = 2026-01-01  [Effective model start date]
+  Assumptions_Dashboard!D7   = 5           [Production starting year (col index)]
+  Assumptions_Dashboard!D29  = 7,920 hrs   [Total available hours/year for excavation]
+  Assumptions_Dashboard!D32  = 1.72        [CHP rehandling capacity denominator]
+  Assumptions_Dashboard!D80  = (year)      [Surface miner ramp-up threshold year]
+  Assumptions_Dashboard!D81  = 0.15        [Blasted coal fraction when SM active]
+  Assumptions_Dashboard!D153 = 70 INR/bcm  [MDO Rehandling cost rate]
+
+
+================================================================================
+END OF DOCUMENT
+================================================================================
