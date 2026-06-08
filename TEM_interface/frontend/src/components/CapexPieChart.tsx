@@ -20,21 +20,21 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
     return (
       <div
         style={{
-          background: "var(--glass-bg)",
+          background: "rgba(15, 23, 42, 0.95)",
           backdropFilter: "blur(12px)",
-          border: "var(--border-accent)",
+          border: "1px solid rgba(99, 102, 241, 0.2)",
           borderRadius: "10px",
           padding: "12px 16px",
-          boxShadow: "var(--glass-shadow)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
         }}
       >
         <div style={{ fontWeight: 600, marginBottom: 4, color: d.color }}>
           {d.name}
         </div>
-        <div style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
+        <div style={{ fontSize: "0.85rem", color: "#f1f5f9" }}>
           ₹ {formatCroreExact(d.value)} Cr
         </div>
-        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+        <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
           {d.percentage}% of total
         </div>
       </div>
@@ -47,7 +47,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", justifyContent: "center", marginTop: 8 }}>
       {payload?.map((entry, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.7rem", color: "var(--text-secondary)" }}>
+        <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.7rem", color: "#94a3b8" }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: entry.color, flexShrink: 0 }} />
           {entry.value}
         </div>
@@ -80,7 +80,7 @@ export function CapexPieChart({ data, title = "Owner CAPEX Breakdown" }: CapexPi
             innerRadius={45}
             paddingAngle={2}
             dataKey="value"
-            stroke="var(--bg-primary)"
+            stroke="rgba(10, 14, 26, 0.8)"
             strokeWidth={2}
             animationBegin={0}
             animationDuration={800}

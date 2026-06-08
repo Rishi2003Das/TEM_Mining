@@ -52,7 +52,7 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
   ];
 
   // Retrieve LOM for each row from DB or calculate as fallback
-  const getLOM = (rowKey: string, type: string) => {
+  const getLOM = (rowKey: string, type: string): number => {
     const lomVal = (scenario.results.production_schedule_lom as Record<string, number> | undefined)?.[rowKey];
     if (lomVal !== undefined && lomVal !== null) {
       return lomVal;
@@ -62,10 +62,10 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
     if (!values) return 0;
     
     if (type === "sum") {
-      return Object.values(values).reduce((s: number, v: any) => s + (v || 0), 0);
+      return (Object.values(values) as any[]).reduce<number>((s, v) => s + (v || 0), 0);
     } else if (type === "stripping_ratio") {
-      const totalWaste = Object.values(ps.waste_volume || {}).reduce((s: number, v: any) => s + (v || 0), 0);
-      const totalCoal = Object.values(ps.coal_production || {}).reduce((s: number, v: any) => s + (v || 0), 0);
+      const totalWaste = (Object.values(ps.waste_volume || {}) as any[]).reduce<number>((s, v) => s + (v || 0), 0);
+      const totalCoal = (Object.values(ps.coal_production || {}) as any[]).reduce<number>((s, v) => s + (v || 0), 0);
       return totalCoal > 0 ? totalWaste / totalCoal : 0;
     }
     return 0;

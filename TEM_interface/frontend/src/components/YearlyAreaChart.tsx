@@ -20,22 +20,22 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
     return (
       <div
         style={{
-          background: "var(--glass-bg)",
+          background: "rgba(15, 23, 42, 0.95)",
           backdropFilter: "blur(12px)",
-          border: "var(--border-accent)",
+          border: "1px solid rgba(99, 102, 241, 0.2)",
           borderRadius: "10px",
           padding: "12px 16px",
-          boxShadow: "var(--glass-shadow)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
           minWidth: 180,
         }}
       >
-        <div style={{ fontWeight: 600, marginBottom: 8, color: "var(--text-primary)", fontSize: "0.85rem" }}>
+        <div style={{ fontWeight: 600, marginBottom: 8, color: "#f1f5f9", fontSize: "0.85rem" }}>
           {label}
         </div>
         {payload.map((p, i) => (
           <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 3, fontSize: "0.8rem" }}>
             <span style={{ color: p.color }}>{p.name}</span>
-            <span style={{ color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ color: "#f1f5f9", fontVariantNumeric: "tabular-nums" }}>
               ₹ {p.value.toFixed(1)} Cr
             </span>
           </div>
@@ -78,21 +78,21 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
               <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-line-color)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
           <XAxis
             dataKey="year"
-            tick={{ fontSize: 10, fill: "var(--text-tertiary)" }}
+            tick={{ fontSize: 10, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "var(--text-tertiary)" }}
+            tick={{ fontSize: 10, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend
-            wrapperStyle={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}
+            wrapperStyle={{ fontSize: "0.75rem", color: "#94a3b8" }}
           />
           <Area
             type="monotone"

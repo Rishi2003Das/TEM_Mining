@@ -21,21 +21,21 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
     return (
       <div
         style={{
-          background: "var(--glass-bg)",
+          background: "rgba(15, 23, 42, 0.95)",
           backdropFilter: "blur(12px)",
-          border: "var(--border-accent)",
+          border: "1px solid rgba(99, 102, 241, 0.2)",
           borderRadius: "10px",
           padding: "12px 16px",
-          boxShadow: "var(--glass-shadow)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
         }}
       >
         <div style={{ fontWeight: 600, marginBottom: 4, color: d.color }}>
           {d.name}
         </div>
-        <div style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
+        <div style={{ fontSize: "0.85rem", color: "#f1f5f9" }}>
           ₹ {formatCroreExact(d.value)} Cr
         </div>
-        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+        <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
           {d.percentage}% of total
         </div>
       </div>
@@ -60,12 +60,12 @@ export function OpexBarChart({ data, title = "Owner OPEX Breakdown (LOM)" }: Ope
       </div>
       <ResponsiveContainer width="100%" height={Math.max(300, data.length * 28)}>
         <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30, top: 5, bottom: 5 }}>
-          <XAxis type="number" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} axisLine={false} tickLine={false} />
+          <XAxis type="number" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
           <YAxis
             dataKey="name"
             type="category"
             width={100}
-            tick={{ fontSize: 11, fill: "var(--text-secondary)" }}
+            tick={{ fontSize: 11, fill: "#94a3b8" }}
             axisLine={false}
             tickLine={false}
           />

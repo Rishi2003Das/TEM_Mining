@@ -1,23 +1,8 @@
-import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import { Dashboard } from "./pages/Dashboard";
 import { AdminPage } from "./pages/AdminPage";
 
 function App() {
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    const saved = localStorage.getItem("theme");
-    return (saved as "dark" | "light") || "dark";
-  });
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  };
-
   return (
     <BrowserRouter>
       <div className="app-layout">
@@ -32,31 +17,21 @@ function App() {
               </div>
             </div>
           </div>
-          <div className="app-header__right">
-            <nav className="app-header__nav">
-              <NavLink
-                to="/"
-                className={({ isActive }) => (isActive ? "active" : "")}
-                end
-              >
-                📊 Dashboard
-              </NavLink>
-              <NavLink
-                to="/admin"
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
-                🔧 Admin
-              </NavLink>
-            </nav>
-            <button
-              className="theme-toggle"
-              onClick={toggleTheme}
-              aria-label="Toggle Theme"
-              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          <nav className="app-header__nav">
+            <NavLink
+              to="/"
+              className={({ isActive }) => (isActive ? "active" : "")}
+              end
             >
-              {theme === "dark" ? "☀️" : "🌙"}
-            </button>
-          </div>
+              📊 Dashboard
+            </NavLink>
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              🔧 Admin
+            </NavLink>
+          </nav>
         </header>
 
         {/* ── Main Content ───────────────────────────────── */}
