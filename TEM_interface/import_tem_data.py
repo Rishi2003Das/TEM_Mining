@@ -113,8 +113,8 @@ def import_tem_data():
     print("Parsing 'Production Schedule'...")
     prod_sheet = wb["Production Schedule"]
     prod_docs = []
-    # Rows to parse: 4 (Total available hours), 5 (Production coal), 8 (Waste), 9 (Top Soil), 10 (OB), 11 (Partings), 12 (Rehandling CHP), 13 (Waste Rehandle), 14 (GCV), 35 (Rehandling cost)
-    prod_rows = [4, 5, 8, 9, 10, 11, 12, 13, 14, 35]
+    # Rows to parse: 4 (Total available hours), 5 (Production coal), 8 (Waste), 9 (Top Soil), 10 (OB), 11 (Partings), 12 (Rehandling CHP), 13 (Waste Rehandle), 14 (GCV), 15 (RD), 16 (Raw Ash), 17 (Moisture), 23 (ROM), 24 (Waste), 25 (In-Pit), 26 (Ex-Pit), 27 (Rehandling), 30 (Bench height coal), 31 (Bench width coal), 32 (Bench height OB/IB), 33 (Bench width OB/IB), 35 (Rehandling cost)
+    prod_rows = [4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 23, 24, 25, 26, 27, 30, 31, 32, 33, 35]
     for r in prod_rows:
         doc = parse_schedule_row(prod_sheet, r)
         if doc:

@@ -9,36 +9,104 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
   const ps = scenario.results.production_schedule;
   if (!ps) return null;
 
-  // We define the list of rows to display:
-  // key in ps, label, unit, type ('sum' or 'average' or 'stripping_ratio')
+  // List of rows to display, including section headers
   const rows = [
-    { key: "coal_production", label: "Production Coal/Ore", unit: "Mt", type: "sum" },
-    { key: "blasted_coal", label: "  - Blasted Coal/Ore", unit: "Mt", type: "sum" },
-    { key: "sm_coal", label: "  - Surface Miner Coal/Ore", unit: "Mt", type: "sum" },
-    { key: "waste_volume", label: "Waste (Topsoil + OB + Partings)", unit: "Mbcm", type: "sum" },
-    { key: "topsoil_volume", label: "  - Topsoil", unit: "Mbcm", type: "sum" },
-    { key: "ob_volume", label: "  - Overburden (OB)", unit: "Mbcm", type: "sum" },
-    { key: "partings", label: "  - Partings", unit: "Mbcm", type: "sum" },
-    { key: "chp_rehandling", label: "Rehandling at CHP", unit: "Mbcm", type: "sum" },
-    { key: "waste_rehandling", label: "Waste - Rehandle", unit: "Mbcm", type: "sum" },
-    { key: "stripping_ratio", label: "Stripping Ratio (YoY)", unit: "cum/t", type: "stripping_ratio" },
-    { key: "rehandling_cost", label: "Rehandling Cost", unit: "₹ Cr", type: "sum" },
-  ] as const;
+    { isHeader: false, key: "available_hours", label: "Total Available Hours excavation", unit: "hrs", type: "constant" },
+    { isHeader: false, key: "coal_production", label: "Production Coal/Ore", unit: "Mt", type: "sum" },
+    { isHeader: false, key: "blasted_coal", label: "  - Blasted Coal/Ore", unit: "Mt", type: "sum" },
+    { isHeader: false, key: "sm_coal", label: "  - Surface Miner Coal/Ore", unit: "Mt", type: "sum" },
+    { isHeader: false, key: "waste_volume", label: "Waste (Topsoil + OB + Partings)", unit: "Mbcm", type: "sum" },
+    { isHeader: false, key: "topsoil_volume", label: "  - Topsoil", unit: "Mbcm", type: "sum" },
+    { isHeader: false, key: "ob_volume", label: "  - Overburden (OB)", unit: "Mbcm", type: "sum" },
+    { isHeader: false, key: "partings", label: "  - Partings", unit: "Mbcm", type: "sum" },
+    { isHeader: false, key: "chp_rehandling", label: "Rehandling at CHP", unit: "Mbcm", type: "sum" },
+    { isHeader: false, key: "waste_rehandling", label: "Waste - Rehandle", unit: "Mbcm", type: "sum" },
+    { isHeader: false, key: "gcv_adb", label: "GCV (ADB)", unit: "kcal/kg", type: "average" },
+    { isHeader: false, key: "relative_density", label: "Relative Density (RD)", unit: "g/cm³", type: "average" },
+    { isHeader: false, key: "raw_ash", label: "Raw Ash", unit: "%", type: "average" },
+    { isHeader: false, key: "moisture", label: "Moisture", unit: "%", type: "average" },
+    
+    // Group Header
+    { isHeader: true, key: "", label: "Stripping Ratio", unit: "", type: "" },
+    { isHeader: false, key: "stripping_ratio", label: "YoY", unit: "cum/t", type: "stripping_ratio" },
+    { isHeader: false, key: "cumulative_stripping_ratio", label: "Cumulative", unit: "cum/t", type: "stripping_ratio" },
+    
+    // Group Header
+    { isHeader: true, key: "", label: "Haul Distance", unit: "", type: "" },
+    { isHeader: false, key: "haul_rom", label: "ROM", unit: "km", type: "average" },
+    { isHeader: false, key: "haul_waste", label: "Waste", unit: "km", type: "average" },
+    { isHeader: false, key: "haul_in_pit", label: "  - In-Pit", unit: "km", type: "average" },
+    { isHeader: false, key: "haul_ex_pit", label: "  - Ex-Pit", unit: "km", type: "average" },
+    { isHeader: false, key: "haul_rehandling", label: "  - Rehandling", unit: "km", type: "average" },
+    
+    // Group Header
+    { isHeader: true, key: "", label: "Bench Specification", unit: "", type: "" },
+    { isHeader: false, key: "bench_height_coal", label: "Bench Height - Coal", unit: "m", type: "constant" },
+    { isHeader: false, key: "bench_width_coal", label: "Bench Width - Coal", unit: "m", type: "constant" },
+    { isHeader: false, key: "bench_height_ob", label: "Bench Height - OB/IB", unit: "m", type: "constant" },
+    { isHeader: false, key: "bench_width_ob", label: "Bench Width - OB/IB", unit: "m", type: "constant" },
+    
+    // Group Header
+    { isHeader: true, key: "", label: "Rehandling Cost", unit: "", type: "" },
+    { isHeader: false, key: "rehandling_cost", label: "Rehandling Cost", unit: "₹ Cr", type: "sum" },
+  ];
 
-  // Calculate LOM for each row
-  const getLOM = (rowKey: typeof rows[number]["key"], type: string) => {
-    const values = ps[rowKey];
+  // Retrieve LOM for each row from DB or calculate as fallback
+  const getLOM = (rowKey: string, type: string) => {
+    const lomVal = (scenario.results.production_schedule_lom as Record<string, number> | undefined)?.[rowKey];
+    if (lomVal !== undefined && lomVal !== null) {
+      return lomVal;
+    }
+    
+    const values = (ps as Record<string, any>)[rowKey];
     if (!values) return 0;
     
     if (type === "sum") {
-      return Object.values(values).reduce((s, v) => s + (v || 0), 0);
+      return Object.values(values).reduce((s: number, v: any) => s + (v || 0), 0);
     } else if (type === "stripping_ratio") {
-      // LOM Stripping Ratio = total waste / total coal
-      const totalWaste = Object.values(ps.waste_volume || {}).reduce((s, v) => s + (v || 0), 0);
-      const totalCoal = Object.values(ps.coal_production || {}).reduce((s, v) => s + (v || 0), 0);
+      const totalWaste = Object.values(ps.waste_volume || {}).reduce((s: number, v: any) => s + (v || 0), 0);
+      const totalCoal = Object.values(ps.coal_production || {}).reduce((s: number, v: any) => s + (v || 0), 0);
       return totalCoal > 0 ? totalWaste / totalCoal : 0;
     }
     return 0;
+  };
+
+  // Custom cell formatter to match Excel display style
+  const formatValue = (val: number | undefined | null, rowKey: string, isLom: boolean = false) => {
+    if (val === undefined || val === null) return "-";
+    
+    if (rowKey.startsWith("bench_")) {
+      if (!isLom) return "-";
+      return val.toFixed(0);
+    }
+    
+    if (val === 0) {
+      if (
+        rowKey === "coal_production" || 
+        rowKey === "waste_volume" || 
+        rowKey === "topsoil_volume" || 
+        rowKey === "ob_volume" || 
+        rowKey === "partings" ||
+        rowKey === "rehandling_cost"
+      ) {
+        return "0.00";
+      }
+      return "-";
+    }
+    
+    if (rowKey === "available_hours" || rowKey === "gcv_adb") {
+      return Math.round(val).toLocaleString();
+    }
+    
+    if (rowKey === "relative_density") {
+      return val.toFixed(2);
+    }
+    
+    if (rowKey === "raw_ash" || rowKey === "moisture") {
+      return `${val.toFixed(2)}%`;
+    }
+    
+    return formatCroreExact(val);
   };
 
   return (
@@ -54,26 +122,51 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
           Year-by-year production metrics, waste decomposition, and stripping ratios.
         </div>
       </div>
-      <div className="data-table-wrapper" style={{ maxHeight: "500px", overflowY: "auto" }}>
+      <div className="data-table-wrapper" style={{ maxHeight: "650px", overflowY: "auto" }}>
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ minWidth: "220px", position: "sticky", left: 0, background: "var(--bg-surface)", zIndex: 3 }}>
+              <th style={{ minWidth: "240px", position: "sticky", left: 0, background: "var(--bg-surface)", zIndex: 3 }}>
                 Parameter
               </th>
               <th>Unit</th>
               <th style={{ textAlign: "right", fontWeight: 600 }}>LOM Total/Avg</th>
               {YEAR_HEADERS.map((yr) => (
-                <th key={yr} style={{ textAlign: "right", minWidth: "70px" }}>
+                <th key={yr} style={{ textAlign: "right", minWidth: "75px" }}>
                   Yr {yr}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => {
+            {rows.map((row, index) => {
+              if (row.isHeader) {
+                return (
+                  <tr key={`header-${index}`} style={{ background: "rgba(255, 255, 255, 0.02)" }}>
+                    <td 
+                      colSpan={YEAR_HEADERS.length + 3} 
+                      style={{ 
+                        position: "sticky", 
+                        left: 0, 
+                        background: "var(--bg-surface-elevated)", 
+                        zIndex: 2,
+                        padding: "0.5rem 0.75rem",
+                        color: "var(--primary-color)",
+                        borderBottom: "1px solid var(--border-color)",
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase"
+                      }}
+                    >
+                      {row.label}
+                    </td>
+                  </tr>
+                );
+              }
+
               const lomValue = getLOM(row.key, row.type);
-              const values = ps[row.key] || {};
+              const values = (ps as Record<string, any>)[row.key] || {};
               const isSubItem = row.label.startsWith("  -");
               
               return (
@@ -90,13 +183,13 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
                   </td>
                   <td style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>{row.unit}</td>
                   <td className="value" style={{ fontWeight: 600, textAlign: "right" }}>
-                    {formatCroreExact(lomValue)}
+                    {formatValue(lomValue, row.key, true)}
                   </td>
                   {YEAR_HEADERS.map((yr) => {
                     const val = values[yr];
                     return (
                       <td key={yr} className="value" style={{ textAlign: "right" }}>
-                        {val !== undefined ? formatCroreExact(val) : "0.00"}
+                        {formatValue(val, row.key, false)}
                       </td>
                     );
                   })}

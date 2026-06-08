@@ -34,8 +34,17 @@ def run_calculation():
             data[item] = doc.get("yearly_values", {})
         return data
 
+    def load_schedule_lom(col_name):
+        col = db[col_name]
+        data = {}
+        for doc in col.find():
+            item = doc.get("item")
+            data[item] = doc.get("lom_total_or_average")
+        return data
+
     print("Loading schedules from database...")
     production_sched = load_schedule_dict("production_schedule")
+    production_sched_lom = load_schedule_lom("production_schedule")
     pre_operative_sched = load_schedule_dict("pre_operative_schedule")
     land_sched = load_schedule_dict("land_schedule")
     rr_sched = load_schedule_dict("rr_schedule")
@@ -156,6 +165,41 @@ def run_calculation():
     clean_waste_rem = {}
     clean_topsoil = {}
     clean_waste_rehandle = {}
+
+    # Additional series loader
+    avail_hours = production_sched.get("Total available Hours excavation", {})
+    gcv_adb = production_sched.get("GCV (ADB)", {})
+    rel_density = production_sched.get("Relaive Density (RD)", {})
+    raw_ash = production_sched.get("Raw ash", {})
+    moisture = production_sched.get("Moisture", {})
+    haul_rom = production_sched.get("ROM", {})
+    haul_waste = production_sched.get("Waste", {})
+    haul_in_pit = production_sched.get("In-Pit", {})
+    haul_ex_pit = production_sched.get("Ex-Pit", {})
+    haul_rehandling = production_sched.get("Rehandling", {})
+    bench_h_coal = production_sched.get("Bench Height - Coal", {})
+    bench_w_coal = production_sched.get("Bench Width - Coal", {})
+    bench_h_ob = production_sched.get("Bench Height - OB/IB", {})
+    bench_w_ob = production_sched.get("Bench Width - OB/IB", {})
+
+    clean_avail_hours = {}
+    clean_gcv_adb = {}
+    clean_rel_density = {}
+    clean_raw_ash = {}
+    clean_moisture = {}
+    clean_haul_rom = {}
+    clean_haul_waste = {}
+    clean_haul_in_pit = {}
+    clean_haul_ex_pit = {}
+    clean_haul_rehandling = {}
+    clean_bench_h_coal = {}
+    clean_bench_w_coal = {}
+    clean_bench_h_ob = {}
+    clean_bench_w_ob = {}
+    
+    computed_cum_stripping_ratio = {}
+    cum_waste = 0.0
+    cum_coal = 0.0
     
     for yr in YEAR_HEADERS:
         yr_str = str(yr)
@@ -207,8 +251,86 @@ def run_calculation():
         # Rehandling Cost (Row 35)
         reh_cost = mdo_rehandle_rate * waste_reh / 10.0
         computed_rehandling_cost[yr_str] = round(reh_cost, 6)
+
+        # Helper to get float or default from raw collections
+        def get_clean_val(val_dict, key, default=0.0):
+            val = val_dict.get(key)
+            if val is None or val == "":
+                return default
+            try:
+                return float(val)
+            except ValueError:
+                return val
+
+        # Available Hours (Row 4)
+        clean_avail_hours[yr_str] = get_clean_val(avail_hours, yr_str)
+        # GCV (ADB) (Row 14)
+        clean_gcv_adb[yr_str] = get_clean_val(gcv_adb, yr_str)
+        # RD (Row 15)
+        clean_rel_density[yr_str] = get_clean_val(rel_density, yr_str)
+        # Raw ash (Row 16)
+        clean_raw_ash[yr_str] = get_clean_val(raw_ash, yr_str)
+        # Moisture (Row 17)
+        clean_moisture[yr_str] = get_clean_val(moisture, yr_str)
+        
+        # Haul Distances (Row 23–27)
+        clean_haul_rom[yr_str] = get_clean_val(haul_rom, yr_str)
+        clean_haul_waste[yr_str] = get_clean_val(haul_waste, yr_str)
+        clean_haul_in_pit[yr_str] = get_clean_val(haul_in_pit, yr_str)
+        clean_haul_ex_pit[yr_str] = get_clean_val(haul_ex_pit, yr_str)
+        clean_haul_rehandling[yr_str] = get_clean_val(haul_rehandling, yr_str)
+        
+        # Bench Specifications (Row 30–33)
+        clean_bench_h_coal[yr_str] = get_clean_val(bench_h_coal, yr_str)
+        clean_bench_w_coal[yr_str] = get_clean_val(bench_w_coal, yr_str)
+        clean_bench_h_ob[yr_str] = get_clean_val(bench_h_ob, yr_str)
+        clean_bench_w_ob[yr_str] = get_clean_val(bench_w_ob, yr_str)
+        
+        # Cumulative Stripping Ratio (Row 20)
+        if yr <= 0:
+            computed_cum_stripping_ratio[yr_str] = 0.0
+        else:
+            cum_waste += waste
+            cum_coal += prod
+            computed_cum_stripping_ratio[yr_str] = round(cum_waste / cum_coal, 6) if cum_coal > 0 else 0.0
+
+    # LOM values from raw MongoDB collections
+    def clean_lom(val, default=0.0):
+        if val is None or val == "":
+            return default
+        try:
+            return float(val)
+        except ValueError:
+            return val
+
+    lom_avail_hours = clean_lom(production_sched_lom.get("Total available Hours excavation", 0.0))
+    lom_coal_prod = clean_lom(production_sched_lom.get("Production Coal/Ore", 0.0))
+    lom_blasted = sum(computed_blasted.values())
+    lom_sm_coal = sum(computed_sm_coal.values())
+    lom_waste_rem = clean_lom(production_sched_lom.get("Waste (Topsoil + Overburden + Interburden)", 0.0))
+    lom_topsoil = clean_lom(production_sched_lom.get("Top Soil", 0.0))
+    lom_ob = sum(computed_ob.values())
+    lom_partings = sum(computed_partings.values())
+    lom_chp_reh = sum(computed_chp_reh.values())
+    lom_waste_rehandle = clean_lom(production_sched_lom.get("Waste - Rehandle", 0.0))
+    lom_gcv_adb = clean_lom(production_sched_lom.get("GCV (ADB)", 0.0))
+    lom_rel_density = clean_lom(production_sched_lom.get("Relaive Density (RD)", 0.0))
+    lom_raw_ash = clean_lom(production_sched_lom.get("Raw ash", 0.0))
+    lom_moisture = clean_lom(production_sched_lom.get("Moisture", 0.0))
+    lom_stripping_ratio = lom_waste_rem / lom_coal_prod if lom_coal_prod > 0 else 0.0
+    lom_cum_stripping_ratio = lom_waste_rem / lom_coal_prod if lom_coal_prod > 0 else 0.0
+    lom_haul_rom = clean_lom(production_sched_lom.get("ROM", 0.0))
+    lom_haul_waste = clean_lom(production_sched_lom.get("Waste", 0.0))
+    lom_haul_in_pit = clean_lom(production_sched_lom.get("In-Pit", 0.0))
+    lom_haul_ex_pit = clean_lom(production_sched_lom.get("Ex-Pit", 0.0))
+    lom_haul_rehandling = clean_lom(production_sched_lom.get("Rehandling", 0.0))
+    lom_bench_h_coal = clean_lom(production_sched_lom.get("Bench Height - Coal", 0.0))
+    lom_bench_w_coal = clean_lom(production_sched_lom.get("Bench Width - Coal", 0.0))
+    lom_bench_h_ob = clean_lom(production_sched_lom.get("Bench Height - OB/IB", 0.0))
+    lom_bench_w_ob = clean_lom(production_sched_lom.get("Bench Width - OB/IB", 0.0))
+    lom_rehandling_cost = sum(computed_rehandling_cost.values())
     
-    print("  Derived schedules computed (Partings, OB, CHP Reh, Blasted/SM Coal, Stripping Ratio, Rehandling Cost)")
+    print("  Derived schedules computed (Partings, OB, CHP Reh, Blasted/SM Coal, Stripping Ratio, Rehandling Cost, and extra Excel columns)")
     
     # 3. Perform calculation for all 8 combinations of switches
     # L4: Mining Mode -> "Departmental" or "MDO"
@@ -649,7 +771,52 @@ def run_calculation():
                     "blasted_coal": computed_blasted,
                     "sm_coal": computed_sm_coal,
                     "stripping_ratio": computed_stripping_ratio,
-                    "rehandling_cost": computed_rehandling_cost
+                    "rehandling_cost": computed_rehandling_cost,
+                    
+                    "available_hours": clean_avail_hours,
+                    "gcv_adb": clean_gcv_adb,
+                    "relative_density": clean_rel_density,
+                    "raw_ash": clean_raw_ash,
+                    "moisture": clean_moisture,
+                    "cumulative_stripping_ratio": computed_cum_stripping_ratio,
+                    "haul_rom": clean_haul_rom,
+                    "haul_waste": clean_haul_waste,
+                    "haul_in_pit": clean_haul_in_pit,
+                    "haul_ex_pit": clean_haul_ex_pit,
+                    "haul_rehandling": clean_haul_rehandling,
+                    "bench_height_coal": clean_bench_h_coal,
+                    "bench_width_coal": clean_bench_w_coal,
+                    "bench_height_ob": clean_bench_h_ob,
+                    "bench_width_ob": clean_bench_w_ob,
+                },
+                "production_schedule_lom": {
+                    "coal_production": lom_coal_prod,
+                    "waste_volume": lom_waste_rem,
+                    "topsoil_volume": lom_topsoil,
+                    "waste_rehandling": lom_waste_rehandle,
+                    "partings": lom_partings,
+                    "ob_volume": lom_ob,
+                    "chp_rehandling": lom_chp_reh,
+                    "blasted_coal": lom_blasted,
+                    "sm_coal": lom_sm_coal,
+                    "stripping_ratio": lom_stripping_ratio,
+                    "rehandling_cost": lom_rehandling_cost,
+                    
+                    "available_hours": lom_avail_hours,
+                    "gcv_adb": lom_gcv_adb,
+                    "relative_density": lom_rel_density,
+                    "raw_ash": lom_raw_ash,
+                    "moisture": lom_moisture,
+                    "cumulative_stripping_ratio": lom_cum_stripping_ratio,
+                    "haul_rom": lom_haul_rom,
+                    "haul_waste": lom_haul_waste,
+                    "haul_in_pit": lom_haul_in_pit,
+                    "haul_ex_pit": lom_haul_ex_pit,
+                    "haul_rehandling": lom_haul_rehandling,
+                    "bench_height_coal": lom_bench_h_coal,
+                    "bench_width_coal": lom_bench_w_coal,
+                    "bench_height_ob": lom_bench_h_ob,
+                    "bench_width_ob": lom_bench_w_ob,
                 }
             }
         }
