@@ -75,7 +75,81 @@
 
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --grid-line-color: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] {
+  /* Colour Palette */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --bg-card: rgba(255, 255, 255, 0.75);
+  --bg-card-hover: rgba(255, 255, 255, 0.9);
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(99, 102, 241, 0.25);
+  --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Gradients */
+  --gradient-bg: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --grid-line-color: rgba(0, 0, 0, 0.06);
+
+  /* Borders & Radii */
+  --border-subtle: 1px solid rgba(99, 102, 241, 0.15);
+  --border-accent: 1px solid rgba(99, 102, 241, 0.4);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.08);
+}
+
+body, .app-header, .glass-card, .kpi-card, .data-table td, .data-table th, .switch-toggle, .switch-toggle__option, .admin-collection, input, button, a {
+  transition: background-color var(--transition-base), border-color var(--transition-base), color var(--transition-base), box-shadow var(--transition-base);
+}
+
+/* Light Mode Input overrides */
+[data-theme="light"] .admin-field__input {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .admin-field__input:focus {
+  background: #ffffff;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 6px rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="light"] .password-gate__input {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .password-gate__input:focus {
+  background: #ffffff;
+}
+
+[data-theme="light"] .switch-toggle {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .switch-toggle__option {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .switch-toggle__option--active {
+  color: #ffffff;
 }
 
 /* ── Reset & Base ──────────────────────────────────────────────── */
@@ -177,6 +251,39 @@ body::before {
   font-size: 0.75rem;
   color: var(--text-tertiary);
   font-weight: 400;
+}
+
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.theme-toggle {
+  background: var(--glass-bg);
+  border: var(--border-subtle);
+  color: var(--text-primary);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 1.05rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
 }
 
 .app-header__nav {
