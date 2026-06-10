@@ -11,9 +11,9 @@ function App() {
           <div className="app-header__logo">
             <div className="app-header__logo-icon">T</div>
             <div>
-              <div className="app-header__title">TEM Dashboard</div>
+              <div className="app-header__title">Techno-Economic model</div>
               <div className="app-header__subtitle">
-                Techno-Economic Model — Option 3 · 15 Mtpa
+                Techno-Economic Model — Made by SRK Consulting
               </div>
             </div>
           </div>
