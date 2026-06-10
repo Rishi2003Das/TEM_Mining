@@ -1,0 +1,221 @@
+=== PROJECT DATA SPECIFICATION ===
+
+Project ID,TEM-20-06-2026
+Project Manager,Rishi Das
+Client Company,Rio Tinto
+Export Date,"10/06/2026, 17:24:16"
+
+Project Description
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla.
+
+Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum velit."
+
+
+=== HARD INPUTS & ASSUMPTIONS ===
+
+--- Salary & Wages ---
+Parameter,Annual CTC,Unit
+executive_project_head_vp_e9,"60,00,000",
+executive_vp_cgm_e8,"45,00,000",
+executive_general_manager_e7,"40,00,000",
+executive_deputy_general_manager_e6,"35,00,000",
+executive_assistant_general_manager_e5,"25,00,000",
+executive_senior_manager_e4,"18,00,000",
+executive_manager_e3,"15,00,000",
+executive_assistant_manager_e2,"12,35,000",
+executive_deputy_manager_e1,"9,60,000",
+executive_get_junior_engineer_e0,"7,50,000",
+executive_project_head_vp_m9,"70,00,000",
+executive_vp_cgm_m8,"55,00,000",
+executive_general_manager_m7,"40,00,000",
+executive_deputy_general_manager_m6,"35,00,000",
+executive_assistant_general_manager_m5,"25,00,000",
+executive_senior_manager_m4,"18,00,000",
+executive_manager_m3,"15,00,000",
+executive_assistant_manager_m2,"12,35,000",
+executive_deputy_manager_m1,"9,60,000",
+executive_get_junior_engineer_m0,"7,50,000",
+statutory_staff_s10,"9,00,000",
+statutory_staff_s9,"7,80,000",
+statutory_staff_s8,"6,70,000",
+statutory_staff_s7,"4,00,000",
+statutory_operator_senior_s6,"6,10,000",
+statutory_operator_mid_senior_s5,"6,00,000",
+statutory_operator_junior_s4,"6,00,000",
+staff_norm_highly_skilled_s3,"4,20,000",
+staff_norm_skilled_clerical_s2,"3,60,000",
+staff_norm_semi_skilled_unskilled_supervisory_s1,"3,00,000",
+staff_norm_unskilled_s0,"2,40,000",
+staff_norm_security_armed_o1,"3,20,000",
+staff_norm_security_unarmed_o2,"3,00,000",
+staff_norm_highly_skilled_s3a,"6,10,000",
+staff_norm_skilled_s2a,"6,00,000",
+staff_norm_semi_skilled_unskilled_supervisory_s1a,"5,80,000",
+staff_norm_unskilled_s0a,"5,70,000",
+
+--- Working Regime ---
+Parameter,Values,Unit
+number_of_shifts_per_day,3.0,
+hours_per_shift,8.0,
+delays_and_refreshment,-,
+actual_hours_per_shift,8.0,
+calendar_days,365,
+national_holidays,8,
+festival_impact,2,
+available_days,355,
+extreme_summer_impact,5,
+number_of_monsoon_months_having_heavy_rainfall,2,
+hours_loss_per_day_in_monsoon_month,8,
+days_loss_due_to_rain,20,
+working_days,330,
+total_available_hours,"7,920",
+
+--- Basic Considerations ---
+Parameter,Value,Unit
+project_start_date,01-Dec-24,date
+effective_start_date_for_model,01-Jan-26,date
+production_start_date,01-Jan-29,date
+production_starting_year,5.0,No.
+total_coal,226,Mt
+total_waste,557,Mbcm
+rated_capacity,15.0,Mtpa
+production_in_1st_year,2.0,Mt
+life_of_mine,19,Year
+block_area,"1,048",ha
+
+--- Density & Swell Factor ---
+Parameter,Value,Unit
+average_density_of_coal,1.7,t/cum
+average_density_of_waste,2.1,t/cum
+swell_factor_for_coal,20%,%
+swell_factor_for_waste,20%,%
+
+--- Explosives ---
+Parameter,Value,Unit
+blasting_requirement_100_percent_for_how_many_years,2.0,Year
+blasting_requirement_in_coal_throughout_life,15%,%
+density_of_explosives,1.10,t/cum
+boosters_required_in_a_hole_250mm,600,gm
+boosters_required_in_a_hole_160mm,500,gm
+boosters_required_in_a_hole_115mm,400,gm
+booster_costs,30,INR/ 100g
+nonel_costs,25,INR/m
+bulk_explosives_costs_basic_rate,52,INR/kg
+
+--- Unit Rates & Op. Costs ---
+Parameter,Base Rate,Unit
+administrative_cost,15,INR/t
+environment_management_cost,75,INR Cr.
+environment_management_and_ohs_cost,7.50,INR Cr.
+operating_cost_contingency,15%,%
+capital_cost_contingency,15%,%
+base_diesel_cost_5_percent_discount_on_bulk_purchase,95.0,INR/lit
+power_charge,7.40,INR/KVAh
+owner_number_of_person_to_avail_the_facility,50%,%
+owner_per_person_cost,"15,000",INR
+mdo_number_of_person_to_avail_the_facility,75%,%
+mdo_per_person_cost,"15,000",INR
+
+--- Maintenance Cost ---
+Parameter,Base Rate,Unit
+civil_infrastructure_maintenance_charge,2.5%,%
+electricals_maintenance_charge,2.5%,%
+mechanical_maintenance_charge,3.5%,%
+amc_for_digitalization_setup_for_owner,3.5%,%
+
+--- Operational Parameters ---
+Parameter,Values,Unit
+additional_equipment_capacity,0%,%
+seven_days_working_reserves,14%,%
+leave_and_sick_reserves,15%,%
+fy_start_date_of_mining_operations,1-Jan-29,
+chp_sustaining_capital,3%,%
+civil_infra_sustaining_capital,4%,%
+
+--- Govt Fees & Charges ---
+Parameter,Base Rate,Unit
+bid_premium_revenue_sharing,21.0%,% of price
+revenue_sharing_of_nci_price_or_commercial_sale_price,Commercial Sale Price,
+royalty,14.0%,% of CIL notified price
+district_mineral_foundation_dmf,10.0%,% of Royalty
+national_mineral_exploration_trust_nmet,3.0%,% of Royalty
+gst_on_product,18.0%,% of Sale Price
+gst_on_revenue_sharing,18.0%,%
+gst_on_royalty_dmf_cess_services,18.0%,%
+corporate_tax,25.2%,%
+mat,17.5%,%
+compensation_cess,,INR/t
+stamp_duty_and_registration_charges,7.0%,%
+corporate_social_responsibility_fund,2.0%,%
+upfront_amount,99.07,INR Cr
+surface_rent,"2,000",INR/ha
+ml_area,1048.00,ha
+
+--- Payment Assumptions ---
+Parameter,Base Rate,Unit
+accounts_receivable_days,45,Days
+inventory_days,30,Days
+accounts_payable_days,21,Days
+corporate_loan_interest,10.0%,%
+working_capital_loan_interest,10.0%,%
+moratorium_period,5,Years
+payback_period,7,Years
+portion_of_debt_finance,0%,%
+
+--- MDO Assumptions ---
+Parameter,Value,Unit
+mdo_margin,20%,%
+debt_percent_for_mdo,0%,%
+mdo_rate,,INR/t
+top_soil_removal_transportation_and_stacking_within_3_0km_lead,70,INR/bcm
+mdo_material_ob_ib_drillin_blasting_explosive_removal_transportation_and_stacking_within_3_0km,90,INR/bcm
+coal_drilling_blasting_surface_miner_explosive_removal_trasnportaion_and_stacking_within_3_0km,100,INR/t
+ob_rehandling_cost,70,INR/bcm
+
+--- Safety & Slope Stability ---
+Parameter,Value,Unit
+supply_commissioning_installation_training_maintenance_1st_year_warranty_period,7.35,INR Cr
+comprehensive_annual_maintenance_contract_2nd_year,0.65,INR Cr
+annual_increment,10.0%,%
+
+--- Production Schedule Parameters ---
+Parameter,Value,Unit
+partings_percent,0.77,fraction
+bench_width_ob_ib,20,m
+chp_rehandling_rate,0.05,fraction
+available_hours_per_year,7920,hrs
+bench_width_coal,20,m
+bench_height_ob_ib,10,m
+sm_threshold_year,2,Year
+bench_height_coal,5,m
+blasted_coal_fraction,0.15,fraction
+chp_rehandling_capacity,1.72,Mtpa
+
+
+=== PRODUCTION SCHEDULE (Year-by-Year) ===
+
+Parameter,Unit,Year -4,Year -3,Year -2,Year -1,Year 1,Year 2,Year 3,Year 4,Year 5,Year 6,Year 7,Year 8,Year 9,Year 10,Year 11,Year 12,Year 13,Year 14,Year 15,Year 16,Year 17,Year 18,Year 19
+Total available Hours excavation,hrs,0,0,0,0,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920,7920
+Production Coal/Ore,Mt,0,0,0,0,1.999999755,3.9999986549999997,8.00000073,11.99999853,14.99999517,15.000007140000001,14.99999859,14.99999688,15.000003719999999,14.99999517,14.99999688,15.00000201,15.00001569,15.00000201,15.00000201,15.000000299999998,9.99999963,7.500002715,2.204390925
+Waste (Topsoil + Overburden + Interburden),Mbcm,0,0,0,0,11.466045729050279,9.51781882596685,17.240514972375692,36.81719615,35.420574905555554,47.46361131843575,43.44746722777778,36.33747506666667,37.865191711111116,33.77894818435754,38.05348234636872,28.983164832402235,25.4498801284916,31.61555083240223,31.5152748258427,40.12336666292135,24.726595192090397,4.296040661931818,1.2764738410404626
+Top Soil,Mbcm,0,0,0,0,0.061151145,0.086432905,0.17890220499999998,0.20884342,0.161722595,0.094374156,0.094374156,0.094374156,0.094374156,0.094374156,0.0582654,0.0582654,0.0582654,0.0582654,0.0582654,0.0516954095,0.0516954095,0.0516954095,0.0516954095
+OB,Mbcm,0,0,0,0,2.5760393726815636,2.1026654249723746,3.7864162386464084,8.2591116945,7.985009633277777,10.822256447240221,9.898543306388888,8.263245109333333,8.614619937555556,7.674783926402231,8.6940355396648,6.607862511452513,5.795207029553069,7.213311291452513,7.19024780994382,9.17667892297191,5.635421484680791,0.9363939427443184,0.24189357393930644
+Partings,Mbcm,0,0,0,0,8.828855211368715,7.328720495994475,13.275196528729284,28.3492410355,27.273842677277777,36.54698071519553,33.45454976538889,27.979855801333336,29.15619761755556,26.009790101955307,29.301181406703915,22.31703692094972,19.59640769893853,24.34397414094972,24.26676161589888,30.89499233044944,19.039478297909607,3.3079513096875,0.9828848576011562
+Rehandling at CHP,Mbcm,0,0,0,0,0.05813952776162791,0.11627903066860466,0.23255816075581395,0.34883716656976743,0.43604637122093026,0.43604671918604654,0.4360464706395349,0.43604642093023255,0.4360466197674418,0.43604637122093026,0.43604642093023255,0.4360465700581395,0.4360469677325582,0.4360465700581395,0.4360465700581395,0.4360465203488372,0.2906976636627907,0.2180233347383721,0.06408113154069767
+Waste - Rehandle,Mbcm,0,0,0,0,0,0,0,0,0,0,11.85,11.85,11.85,11.85,7.06,7.06,7.06,7.06,0,0,0,0,0
+GCV (ADB),kcal/kg,0,0,0,0,3210,3150,3160,3150,3120,3190,3090,3160,3190,3280,3280,3020,3120,3100,2850,2970,3020,3040,3200
+Relaive Density (RD),g/cm²,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Raw ash,%,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Moisture,%,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+ROM,km,0,0,0,0,1.6,1.6,2,2.5,2.6,2.8,3,3.2,3.4,3.5,3.7,3.8,4,4.2,4.4,4.4,4.4,4.4,4.4
+Waste,km,0,0,0,0,1.4757639816533545,1.816971323367676,1.7860171818200261,1.5927860719688907,1.2863678700347738,1.429094296027819,1.5718207220208642,1.7145471480139094,1.8572735740069546,2,1.96,1.92,1.88,1.8399999999999999,1.8,1.74,1.68,1.6199999999999999,1.5
+In-Pit,km,0,0,0,0,0,0,0,0.8,1,1.429094296027819,1.5718207220208642,1.7145471480139094,1.8572735740069546,2,1.96,1.92,1.88,1.8399999999999999,1.8,1.74,1.68,1.6199999999999999,1.5
+Ex-Pit,km,0,0,0,0,1.4757639816533545,1.816971323367676,1.7860171818200261,1.8,1.8,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Rehandling,km,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,0,0,0,0,0
+Bench Height - Coal,m,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Bench Width - Coal,m,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Bench Height - OB/IB,m,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Bench Width - OB/IB,m,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Rehandling cost,INR Cr,0,0,0,0,0,0,0,0,0,0,82.95,82.95,82.95,82.95,49.42,49.42,49.42,49.42,0,0,0,0,0
