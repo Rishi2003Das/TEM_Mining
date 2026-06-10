@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { ScenarioData } from "../types";
 import { YEAR_HEADERS, formatCroreExact } from "../types";
 
@@ -7,6 +8,15 @@ interface ProductionScheduleTableProps {
 
 export function ProductionScheduleTable({ scenario }: ProductionScheduleTableProps) {
   const ps = scenario.results.production_schedule;
+
+  const years = useMemo(() => {
+    if (!ps || !ps.coal_production) return YEAR_HEADERS;
+    return Object.keys(ps.coal_production)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map(String);
+  }, [ps]);
+
   if (!ps) return null;
 
   // List of rows to display, including section headers
@@ -131,7 +141,7 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
               </th>
               <th>Unit</th>
               <th style={{ textAlign: "right", fontWeight: 600 }}>LOM Total/Avg</th>
-              {YEAR_HEADERS.map((yr) => (
+              {years.map((yr) => (
                 <th key={yr} style={{ textAlign: "right", minWidth: "75px" }}>
                   Yr {yr}
                 </th>
@@ -144,7 +154,7 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
                 return (
                   <tr key={`header-${index}`} style={{ background: "rgba(255, 255, 255, 0.02)" }}>
                     <td 
-                      colSpan={YEAR_HEADERS.length + 3} 
+                      colSpan={years.length + 3} 
                       style={{ 
                         position: "sticky", 
                         left: 0, 
@@ -185,7 +195,7 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
                   <td className="value" style={{ fontWeight: 600, textAlign: "right" }}>
                     {formatValue(lomValue, row.key, true)}
                   </td>
-                  {YEAR_HEADERS.map((yr) => {
+                  {years.map((yr) => {
                     const val = values[yr];
                     return (
                       <td key={yr} className="value" style={{ textAlign: "right" }}>

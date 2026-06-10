@@ -270,6 +270,135 @@ app.post("/api/admin/update-input", async (req, res) => {
   }
 });
 
+// POST /api/admin/update-production-schedule — update year-by-year schedule item
+app.post("/api/admin/update-production-schedule", async (req, res) => {
+  const { item, yearly_values } = req.body;
+  if (!item || !yearly_values) {
+    return res.status(400).json({ error: "Missing item or yearly_values" });
+  }
+
+  try {
+    const cleanedValues = {};
+    for (const [yr, val] of Object.entries(yearly_values)) {
+      const parsed = parseFloat(val);
+      cleanedValues[yr] = isNaN(parsed) ? val : parsed;
+    }
+
+    const result = await db.collection("production_schedule").updateOne(
+      { item: item },
+      { $set: { yearly_values: cleanedValues } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: `Item '${item}' not found in production_schedule` });
+    }
+
+    res.json({ success: true, message: `Production schedule item '${item}' updated successfully` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/add-year — add next year to all yearly value collections
+app.post("/api/admin/add-year", async (req, res) => {
+  try {
+    const sampleDoc = await db.collection("production_schedule").findOne();
+    if (!sampleDoc || !sampleDoc.yearly_values) {
+      return res.status(500).json({ error: "No production schedule found to determine years" });
+    }
+
+    const years = Object.keys(sampleDoc.yearly_values)
+      .map(Number)
+      .filter((n) => !isNaN(n));
+
+    if (years.length === 0) {
+      return res.status(500).json({ error: "Could not find any years in production schedule" });
+    }
+
+    const maxYear = Math.max(...years);
+    const nextYear = maxYear + 1;
+    const nextYearStr = String(nextYear);
+
+    const collectionsToUpdate = [
+      "production_schedule",
+      "pre_operative_schedule",
+      "land_schedule",
+      "rr_schedule",
+      "coal_price_schedule",
+      "capex_breakups_schedule",
+      "fleet_replacement_schedule",
+      "wages_schedule",
+      "government_schedule",
+      "owner_opex_schedule",
+      "project_opex_schedule"
+    ];
+
+    for (const colName of collectionsToUpdate) {
+      const col = db.collection(colName);
+      await col.updateMany(
+        {},
+        { $set: { [`yearly_values.${nextYearStr}`]: 0 } }
+      );
+    }
+
+    res.json({ success: true, addedYear: nextYearStr });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/remove-year — remove latest year from all yearly value collections
+app.post("/api/admin/remove-year", async (req, res) => {
+  try {
+    const sampleDoc = await db.collection("production_schedule").findOne();
+    if (!sampleDoc || !sampleDoc.yearly_values) {
+      return res.status(500).json({ error: "No production schedule found to determine years" });
+    }
+
+    const years = Object.keys(sampleDoc.yearly_values)
+      .map(Number)
+      .filter((n) => !isNaN(n));
+
+    if (years.length === 0) {
+      return res.status(500).json({ error: "Could not find any years in production schedule" });
+    }
+
+    const maxYear = Math.max(...years);
+    // Don't allow removing years <= 1 to protect core structure
+    if (maxYear <= 1) {
+      return res.status(400).json({ error: "Cannot remove core production years (<= 1)" });
+    }
+
+    const maxYearStr = String(maxYear);
+
+    const collectionsToUpdate = [
+      "production_schedule",
+      "pre_operative_schedule",
+      "land_schedule",
+      "rr_schedule",
+      "coal_price_schedule",
+      "capex_breakups_schedule",
+      "fleet_replacement_schedule",
+      "wages_schedule",
+      "government_schedule",
+      "owner_opex_schedule",
+      "project_opex_schedule"
+    ];
+
+    for (const colName of collectionsToUpdate) {
+      const col = db.collection(colName);
+      await col.updateMany(
+        {},
+        { $unset: { [`yearly_values.${maxYearStr}`]: "" } }
+      );
+    }
+
+    res.json({ success: true, removedYear: maxYearStr });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/recalculate — trigger calculate_tem.py recalculation
 const { exec } = require("child_process");
 const path = require("path");

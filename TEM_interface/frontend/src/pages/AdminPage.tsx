@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PasswordGate } from "../components/PasswordGate";
-import { API_BASE } from "../types";
+import { API_BASE, YEAR_HEADERS } from "../types";
 
 interface HardInputDoc {
   key?: string;
@@ -51,23 +51,44 @@ export function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [data, setData] = useState<HardInputsData | null>(null);
   const [editingData, setEditingData] = useState<HardInputsData | null>(null);
+  const [prodSchedule, setProdSchedule] = useState<any[] | null>(null);
+  const [editingProdSchedule, setEditingProdSchedule] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [addingYear, setAddingYear] = useState(false);
+  const [removingYear, setRemovingYear] = useState(false);
+
+  const years = useMemo(() => {
+    if (!editingProdSchedule || editingProdSchedule.length === 0) return YEAR_HEADERS;
+    const firstRow = editingProdSchedule[0];
+    if (!firstRow || !firstRow.yearly_values) return YEAR_HEADERS;
+    return Object.keys(firstRow.yearly_values)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map(String);
+  }, [editingProdSchedule]);
 
   useEffect(() => {
     if (!authenticated) return;
 
     setLoading(true);
-    fetch(`${API_BASE}/hard-inputs`)
-      .then((res) => {
+    Promise.all([
+      fetch(`${API_BASE}/hard-inputs`).then((res) => {
         if (!res.ok) throw new Error("Failed to load hard inputs");
         return res.json();
+      }),
+      fetch(`${API_BASE}/schedules/production`).then((res) => {
+        if (!res.ok) throw new Error("Failed to load production schedule");
+        return res.json();
       })
-      .then((d) => {
-        setData(d);
-        setEditingData(JSON.parse(JSON.stringify(d))); // Deep copy
+    ])
+      .then(([hardInputs, prodSched]) => {
+        setData(hardInputs);
+        setEditingData(JSON.parse(JSON.stringify(hardInputs)));
+        setProdSchedule(prodSched);
+        setEditingProdSchedule(JSON.parse(JSON.stringify(prodSched)));
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -163,29 +184,79 @@ export function AdminPage() {
       });
     }
 
-    if (updates.length === 0) {
+    const scheduleUpdates: { item: string; yearly_values: Record<string, number | string> }[] = [];
+
+    if (prodSchedule && editingProdSchedule) {
+      editingProdSchedule.forEach((row) => {
+        const origRow = prodSchedule.find((r) => r.item === row.item);
+        if (origRow) {
+          let rowChanged = false;
+          for (const yr of years) {
+            const yrStr = String(yr);
+            if (row.yearly_values[yrStr] !== origRow.yearly_values[yrStr]) {
+              rowChanged = true;
+              break;
+            }
+          }
+          if (rowChanged) {
+            scheduleUpdates.push({
+              item: row.item,
+              yearly_values: row.yearly_values,
+            });
+          }
+        }
+      });
+    }
+
+    if (updates.length === 0 && scheduleUpdates.length === 0) {
       setSavingMessage("No changes to save. Recalculating scenarios...");
     } else {
-      setSavingMessage(`Saving ${updates.length} parameters to MongoDB...`);
-      try {
-        await Promise.all(
-          updates.map((up) =>
-            fetch(`${API_BASE}/admin/update-input`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(up),
-            }).then(async (res) => {
-              if (!res.ok) {
-                const errJson = await res.json();
-                throw new Error(errJson.error || "Failed to update input");
-              }
-            })
-          )
-        );
-      } catch (err) {
-        alert(`Error saving changes: ${err instanceof Error ? err.message : "Unknown error"}`);
-        setSaving(false);
-        return;
+      if (updates.length > 0) {
+        setSavingMessage(`Saving ${updates.length} parameters to MongoDB...`);
+        try {
+          await Promise.all(
+            updates.map((up) =>
+              fetch(`${API_BASE}/admin/update-input`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(up),
+              }).then(async (res) => {
+                if (!res.ok) {
+                  const errJson = await res.json();
+                  throw new Error(errJson.error || "Failed to update input");
+                }
+              })
+            )
+          );
+        } catch (err) {
+          alert(`Error saving parameter changes: ${err instanceof Error ? err.message : "Unknown error"}`);
+          setSaving(false);
+          return;
+        }
+      }
+
+      if (scheduleUpdates.length > 0) {
+        setSavingMessage(`Saving ${scheduleUpdates.length} production schedule series...`);
+        try {
+          await Promise.all(
+            scheduleUpdates.map((up) =>
+              fetch(`${API_BASE}/admin/update-production-schedule`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(up),
+              }).then(async (res) => {
+                if (!res.ok) {
+                  const errJson = await res.json();
+                  throw new Error(errJson.error || "Failed to update production schedule");
+                }
+              })
+            )
+          );
+        } catch (err) {
+          alert(`Error saving production schedule changes: ${err instanceof Error ? err.message : "Unknown error"}`);
+          setSaving(false);
+          return;
+        }
       }
     }
 
@@ -198,11 +269,18 @@ export function AdminPage() {
       }
 
       setSavingMessage("Refreshing parameters...");
-      const refreshRes = await fetch(`${API_BASE}/hard-inputs`);
-      if (refreshRes.ok) {
+      const [refreshRes, refreshSchedRes] = await Promise.all([
+        fetch(`${API_BASE}/hard-inputs`),
+        fetch(`${API_BASE}/schedules/production`),
+      ]);
+
+      if (refreshRes.ok && refreshSchedRes.ok) {
         const freshData = await refreshRes.json();
+        const freshSchedData = await refreshSchedRes.json();
         setData(freshData);
         setEditingData(JSON.parse(JSON.stringify(freshData)));
+        setProdSchedule(freshSchedData);
+        setEditingProdSchedule(JSON.parse(JSON.stringify(freshSchedData)));
       }
       alert("TEM scenarios successfully recalculated with new inputs!");
     } catch (err) {
@@ -210,6 +288,91 @@ export function AdminPage() {
     } finally {
       setSaving(false);
       setSavingMessage("");
+    }
+  }
+
+  async function handleAddYear() {
+    setAddingYear(true);
+    setSavingMessage("Adding new year to all schedules...");
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/admin/add-year`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const errJson = await res.json();
+        throw new Error(errJson.error || "Failed to add year");
+      }
+      
+      const resData = await res.json();
+      const newYearStr = resData.addedYear;
+      
+      // Refresh parameters
+      const [refreshRes, refreshSchedRes] = await Promise.all([
+        fetch(`${API_BASE}/hard-inputs`),
+        fetch(`${API_BASE}/schedules/production`),
+      ]);
+
+      if (refreshRes.ok && refreshSchedRes.ok) {
+        const freshData = await refreshRes.json();
+        const freshSchedData = await refreshSchedRes.json();
+        setData(freshData);
+        setEditingData(JSON.parse(JSON.stringify(freshData)));
+        setProdSchedule(freshSchedData);
+        setEditingProdSchedule(JSON.parse(JSON.stringify(freshSchedData)));
+      }
+      alert(`Year ${newYearStr} successfully added to all database schedules!`);
+    } catch (err) {
+      alert(`Error adding year: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setAddingYear(false);
+      setSaving(false);
+      setSavingMessage("");
+    }
+  }
+
+  async function handleRemoveYear() {
+    if (!years || years.length === 0) return;
+    const maxYr = years[years.length - 1];
+    
+    if (confirm(`Are you sure you want to remove Year ${maxYr} from all schedules? This action cannot be undone.`)) {
+      setRemovingYear(true);
+      setSavingMessage(`Removing year ${maxYr} from all schedules...`);
+      setSaving(true);
+      try {
+        const res = await fetch(`${API_BASE}/admin/remove-year`, {
+          method: "POST",
+        });
+        if (!res.ok) {
+          const errJson = await res.json();
+          throw new Error(errJson.error || "Failed to remove year");
+        }
+        
+        const resData = await res.json();
+        const removedYearStr = resData.removedYear;
+        
+        // Refresh parameters
+        const [refreshRes, refreshSchedRes] = await Promise.all([
+          fetch(`${API_BASE}/hard-inputs`),
+          fetch(`${API_BASE}/schedules/production`),
+        ]);
+
+        if (refreshRes.ok && refreshSchedRes.ok) {
+          const freshData = await refreshRes.json();
+          const freshSchedData = await refreshSchedRes.json();
+          setData(freshData);
+          setEditingData(JSON.parse(JSON.stringify(freshData)));
+          setProdSchedule(freshSchedData);
+          setEditingProdSchedule(JSON.parse(JSON.stringify(freshSchedData)));
+        }
+        alert(`Year ${removedYearStr} successfully removed from all database schedules!`);
+      } catch (err) {
+        alert(`Error removing year: ${err instanceof Error ? err.message : "Unknown error"}`);
+      } finally {
+        setRemovingYear(false);
+        setSaving(false);
+        setSavingMessage("");
+      }
     }
   }
 
@@ -230,7 +393,7 @@ export function AdminPage() {
           )}
           <button
             onClick={handleSaveAndRecalculate}
-            disabled={saving || !editingData}
+            disabled={saving || (!editingData && !editingProdSchedule)}
             className="btn btn--primary"
           >
             {saving ? "Processing..." : "💾 Save & Recalculate"}
@@ -270,6 +433,136 @@ export function AdminPage() {
             </div>
           ))}
       </div>
+
+      <div className="section-header" style={{ marginTop: "var(--space-xl)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
+          <div className="section-header__bar" />
+          <div>
+            <h2 className="section-header__title">Production Schedule Series (Year-by-Year)</h2>
+            <span className="section-header__subtitle">
+              Editable hard inputs from the production schedule
+            </span>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "var(--space-sm)" }}>
+          <button
+            onClick={handleRemoveYear}
+            disabled={saving || removingYear || years.length <= 5}
+            className="btn btn--ghost"
+            style={{ fontSize: "0.85rem", padding: "8px 16px", borderColor: "rgba(244, 63, 94, 0.2)", color: "var(--accent-rose)" }}
+          >
+            {removingYear ? "Removing..." : "🗑️ Remove Year"}
+          </button>
+          <button
+            onClick={handleAddYear}
+            disabled={saving || addingYear}
+            className="btn btn--ghost"
+            style={{ fontSize: "0.85rem", padding: "8px 16px" }}
+          >
+            {addingYear ? "Adding..." : "➕ Add Production Year"}
+          </button>
+        </div>
+      </div>
+
+      {editingProdSchedule && (
+        <div className="glass-card animate-in" style={{ width: "100%", padding: "var(--space-md)", marginBottom: "var(--space-2xl)" }}>
+          <div className="data-table-wrapper" style={{ overflowX: "auto" }}>
+            <table className="data-table" style={{ width: "100%" }}>
+              <thead>
+                <tr>
+                  <th style={{ minWidth: "240px", position: "sticky", left: 0, background: "var(--bg-secondary)", zIndex: 3 }}>
+                    Parameter
+                  </th>
+                  <th>Unit</th>
+                  {years.map((yr) => (
+                    <th key={yr} style={{ textAlign: "right", minWidth: "85px" }}>
+                      Yr {yr}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {editingProdSchedule
+                  .filter((row) => {
+                    const keysToEdit = [
+                      "Production Coal/Ore",
+                      "Waste (Topsoil + Overburden + Interburden)",
+                      "Top Soil",
+                      "Waste - Rehandle",
+                      "GCV (ADB)",
+                      "ROM",
+                      "Waste",
+                      "In-Pit",
+                      "Ex-Pit",
+                      "Rehandling"
+                    ];
+                    return keysToEdit.includes(row.item);
+                  })
+                  .map((row) => {
+                    let displayName = row.item;
+                    if (row.item === "Waste (Topsoil + Overburden + Interburden)") {
+                      displayName = "Total Waste Amount";
+                    } else if (row.item === "ROM") {
+                      displayName = "ROM Coal Haul Distance";
+                    } else if (row.item === "Waste") {
+                      displayName = "Waste Haul Distance";
+                    } else if (row.item === "In-Pit") {
+                      displayName = "In-Pit Haul Distance";
+                    } else if (row.item === "Ex-Pit") {
+                      displayName = "Ex-Pit Haul Distance";
+                    } else if (row.item === "Rehandling") {
+                      displayName = "Rehandling Haul Distance";
+                    }
+                    
+                    return (
+                      <tr key={row.item}>
+                        <td style={{ position: "sticky", left: 0, background: "var(--bg-secondary)", zIndex: 2, fontWeight: 500 }}>
+                          {displayName}
+                        </td>
+                        <td style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
+                          {row.unit}
+                        </td>
+                        {years.map((yr) => {
+                          const yrStr = String(yr);
+                          const val = row.yearly_values[yrStr] ?? "";
+                          return (
+                            <td key={yr} style={{ textAlign: "right" }}>
+                              <input
+                                type="text"
+                                className="admin-field__input"
+                                style={{ width: "70px", textAlign: "right", margin: "2px 0" }}
+                                value={val}
+                                disabled={saving}
+                                onChange={(e) => {
+                                  const newVal = e.target.value;
+                                  setEditingProdSchedule((prev) => {
+                                    if (!prev) return null;
+                                    return prev.map((r) => {
+                                      if (r.item === row.item) {
+                                        return {
+                                          ...r,
+                                          yearly_values: {
+                                            ...r.yearly_values,
+                                            [yrStr]: newVal,
+                                          },
+                                        };
+                                      }
+                                      return r;
+                                    });
+                                  });
+                                }}
+                              />
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

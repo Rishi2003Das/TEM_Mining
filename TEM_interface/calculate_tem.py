@@ -25,6 +25,24 @@ def run_calculation():
     client = pymongo.MongoClient(CONNECTION_STRING)
     db = client[DATABASE_NAME]
     
+    # Dynamically determine YEAR_HEADERS from production_schedule keys
+    global YEAR_HEADERS
+    try:
+        sample_doc = db["production_schedule"].find_one({"item": "Production Coal/Ore"})
+        if sample_doc and "yearly_values" in sample_doc:
+            db_years = []
+            for k in sample_doc["yearly_values"].keys():
+                try:
+                    db_years.append(int(k))
+                except ValueError:
+                    pass
+            db_years.sort()
+            if len(db_years) > 0:
+                YEAR_HEADERS = db_years
+                print(f"Dynamically loaded YEAR_HEADERS from MongoDB: {YEAR_HEADERS}")
+    except Exception as e:
+        print(f"Error dynamically loading YEAR_HEADERS, falling back to default: {e}")
+        
     # 1. Load all schedules from MongoDB
     def load_schedule_dict(col_name):
         col = db[col_name]

@@ -213,11 +213,21 @@ export function useScenarioData() {
       .filter((d) => d.value > 0);
   }, [scenario]);
 
+  const years = useMemo(() => {
+    if (!scenario || !scenario.results.production_schedule?.coal_production) {
+      return YEAR_HEADERS;
+    }
+    return Object.keys(scenario.results.production_schedule.coal_production)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map(String);
+  }, [scenario]);
+
   // Year-by-year stacked area chart
   const yearlyChartData: YearlyChartData[] = useMemo(() => {
     if (!scenario) return [];
 
-    return YEAR_HEADERS.map((yr) => ({
+    return years.map((yr) => ({
       year: `Yr ${yr}`,
       ownerCapex: Math.round((scenario.results.capex.owner_total[yr] || 0) * 100) / 100,
       ownerOpex: Math.round((scenario.results.opex.subtotal[yr] || 0) * 100) / 100,
@@ -228,7 +238,7 @@ export function useScenarioData() {
         (scenario.results.opex.mdo_contractor[yr] || 0) * 100
       ) / 100,
     }));
-  }, [scenario]);
+  }, [scenario, years]);
 
   // Summary KPIs
   const kpis = useMemo(() => {
@@ -263,5 +273,6 @@ export function useScenarioData() {
     yearlyChartData,
     kpis,
     refetch: fetchScenario,
+    years,
   };
 }
