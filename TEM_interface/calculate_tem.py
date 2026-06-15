@@ -1,12 +1,178 @@
 import datetime
 import os
 import pymongo
+import math
 
 # MongoDB connection configuration
 CONNECTION_STRING = os.environ.get("MONGODB_URI", "mongodb+srv://rishikakalidas:KNris$0068@tem.khdmanp.mongodb.net/?appName=tem")
 DATABASE_NAME = os.environ.get("DATABASE_NAME", "tem")
 
 YEAR_HEADERS = [-4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+
+def calculate_4_equip_costs(yearly_coal_prod, yearly_partings, machinery_mode, diesel_price=95.0):
+    specs = {
+        "drill": {"cost": 0.58, "life": 5, "spares": 0.10, "fuel_avg": 28.0, "hrs_yr": 4435.2, "tyres_nos": 0, "tyre_cost": 0.0, "lub_factor": 0.05},
+        "shovel": {"cost": 4.35, "life": 6, "spares": 0.125, "fuel_avg": 48.0, "hrs_yr": 4752.0, "tyres_nos": 0, "tyre_cost": 0.0, "lub_factor": 0.05},
+        "sm": {"cost": 7.67, "life": 5, "spares": 1.0/6.0, "fuel_avg": 90.0, "hrs_yr": 5385.6, "tyres_nos": 0, "tyre_cost": 0.0, "lub_factor": 0.05},
+        "fel": {"cost": 4.52, "life": 5, "spares": 1.0/6.0, "fuel_avg": 55.0, "hrs_yr": 5722.2, "tyres_nos": 4, "tyre_cost": 150000.0 / 1e7, "lub_factor": 0.20}
+    }
+    
+    rd_coal = 1.72
+    fractional = {eq: {} for eq in specs}
+    final_size = {eq: {} for eq in specs}
+    
+    for yr in YEAR_HEADERS:
+        yr_str = str(yr)
+        prod = yearly_coal_prod.get(yr_str, 0.0)
+        part = yearly_partings.get(yr_str, 0.0)
+        
+        if yr <= 0:
+            blasted = 0.0
+            sm_coal = 0.0
+        else:
+            if machinery_mode == "Surface Miner":
+                if yr <= 2:
+                    blasted = prod
+                    sm_coal = 0.0
+                else:
+                    blasted = prod * 0.15
+                    sm_coal = prod - blasted
+            else:
+                blasted = prod
+                sm_coal = 0.0
+                
+        # 1. Drill 115mm
+        if yr <= 0:
+            f_drill = 0.0
+        else:
+            f_drill = (blasted / rd_coal * 1e6) / 2822400.0
+        fractional["drill"][yr_str] = f_drill
+        final_size["drill"][yr_str] = math.ceil(f_drill)
+        
+        # 2. Shovel 4.6
+        if yr <= 0:
+            f_shovel = 0.0
+        else:
+            material_shovel = blasted / rd_coal + part * 0.3
+            f_shovel = (material_shovel * 1e6) / 1341360.0
+        fractional["shovel"][yr_str] = f_shovel
+        final_size["shovel"][yr_str] = math.ceil(f_shovel)
+        
+        # 3. SM 2200SM
+        if yr <= 0:
+            f_sm = 0.0
+        else:
+            f_sm = (sm_coal * 1e6) / 5002145.28
+        fractional["sm"][yr_str] = f_sm
+        final_size["sm"][yr_str] = math.ceil(f_sm)
+        
+        # 4. FEL 6.4
+        if yr <= 0:
+            f_fel = 0.0
+        else:
+            f_fel = (sm_coal / rd_coal * 1e6) / 2137937.64
+        fractional["fel"][yr_str] = f_fel
+        final_size["fel"][yr_str] = math.ceil(f_fel)
+
+    phasing = {eq: {} for eq in specs}
+    replacement = {eq: {} for eq in specs}
+    
+    for eq, eq_specs in specs.items():
+        life = eq_specs["life"]
+        max_prior = 0.0
+        
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            size = final_size[eq][yr_str]
+            p = max(0.0, size - max_prior)
+            phasing[eq][yr_str] = float(math.ceil(p))
+            max_prior = max(max_prior, size)
+            
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            if yr <= life:
+                r = 0.0
+            else:
+                ref_y = (yr - life - 1) % life + 1
+                ref_y_str = str(ref_y)
+                r = phasing[eq][ref_y_str]
+            replacement[eq][yr_str] = float(r)
+
+    costs = {
+        "initial_capex": {yr_str: 0.0 for yr_str in map(str, YEAR_HEADERS)},
+        "sustaining_capex": {yr_str: 0.0 for yr_str in map(str, YEAR_HEADERS)},
+        "diesel": {yr_str: 0.0 for yr_str in map(str, YEAR_HEADERS)},
+        "lubrication": {yr_str: 0.0 for yr_str in map(str, YEAR_HEADERS)},
+        "spares": {yr_str: 0.0 for yr_str in map(str, YEAR_HEADERS)},
+        "tyres": {yr_str: 0.0 for yr_str in map(str, YEAR_HEADERS)}
+    }
+    
+    for eq, eq_specs in specs.items():
+        cost_unit = eq_specs["cost"]
+        spares_pct = eq_specs["spares"]
+        fuel_avg = eq_specs["fuel_avg"]
+        hrs_yr = eq_specs["hrs_yr"]
+        tyres_nos = eq_specs["tyres_nos"]
+        tyre_cost = eq_specs["tyre_cost"]
+        lub_factor = eq_specs["lub_factor"]
+        
+        rate_diesel = fuel_avg * hrs_yr * diesel_price / 1e7
+        rate_spares = cost_unit * spares_pct
+        rate_tyres = tyres_nos * tyre_cost
+        
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            p_count = phasing[eq][yr_str]
+            r_count = replacement[eq][yr_str]
+            frac_count = fractional[eq][yr_str]
+            
+            costs["initial_capex"][yr_str] += p_count * cost_unit
+            costs["sustaining_capex"][yr_str] += r_count * cost_unit
+            
+            eq_diesel = frac_count * rate_diesel
+            eq_lub = eq_diesel * lub_factor
+            eq_spares = frac_count * rate_spares
+            eq_tyres = frac_count * rate_tyres
+            
+            costs["diesel"][yr_str] += eq_diesel
+            costs["lubrication"][yr_str] += eq_lub
+            costs["spares"][yr_str] += eq_spares
+            costs["tyres"][yr_str] += eq_tyres
+            
+    for category in ["initial_capex", "sustaining_capex", "diesel", "lubrication", "spares", "tyres"]:
+        for yr_str in costs[category]:
+            costs[category][yr_str] = round(costs[category][yr_str], 6)
+            
+    return costs
+
+def calculate_explosives_115(yearly_coal_prod, machinery_mode):
+    costs = {str(yr): 0.0 for yr in YEAR_HEADERS}
+    for yr in YEAR_HEADERS:
+        yr_str = str(yr)
+        prod = yearly_coal_prod.get(yr_str, 0.0)
+        if yr <= 0:
+            blasted = 0.0
+        elif yr <= 2:
+            blasted = prod
+        elif machinery_mode == "Surface Miner":
+            blasted = prod * 0.15
+        else:
+            blasted = prod
+            
+        blasted_bcm = blasted / 1.72
+        meters = blasted_bcm * 1e6 / 18.18181818181818
+        blastholes = float(round(meters / 5.5, 0))
+        
+        boosters_kg = blastholes * 30.0 / 1000.0
+        nonel_km = blastholes * 17.0 / 1000.0
+        bulk_t = 0.1644087788401764 * blasted_bcm * 1e6 / 1000.0
+        
+        booster_cost = boosters_kg * 300.0 / 1e7
+        nonel_cost = nonel_km * 25000.0 / 1e7
+        bulk_cost = bulk_t * 52000.0 / 1e7
+        
+        costs[yr_str] = round(booster_cost + nonel_cost + bulk_cost, 6)
+    return costs
 
 def parse_rate(val):
     if val is None:
@@ -350,29 +516,54 @@ def run_calculation():
     
     print("  Derived schedules computed (Partings, OB, CHP Reh, Blasted/SM Coal, Stripping Ratio, Rehandling Cost, and extra Excel columns)")
     
-    # 3. Perform calculation for all 8 combinations of switches
+    # 3. Perform calculation for all 16 combinations of switches
     # L4: Mining Mode -> "Departmental" or "MDO"
-    # L6: Pre-Tax / Pre-Finance -> "Yes" or "No" (Pre-tax pre-finance is Yes, which means IDC is 0. If No, IDC is computed)
+    # L6: Pre-Tax / Pre-Finance -> "Yes" or "No"
     # L8: Coal Price Type -> "Commercial" or "NCI"
+    # Machinery Mode -> "Surface Miner" or "Shovel-Dumper"
     
     scenarios = [
-        ("Departmental", "Yes", "Commercial"),
-        ("Departmental", "Yes", "NCI"),
-        ("Departmental", "No", "Commercial"),
-        ("Departmental", "No", "NCI"),
-        ("MDO", "Yes", "Commercial"),
-        ("MDO", "Yes", "NCI"),
-        ("MDO", "No", "Commercial"),
-        ("MDO", "No", "NCI")
+        ("Departmental", "Yes", "Commercial", "Surface Miner"),
+        ("Departmental", "Yes", "Commercial", "Shovel-Dumper"),
+        ("Departmental", "Yes", "NCI", "Surface Miner"),
+        ("Departmental", "Yes", "NCI", "Shovel-Dumper"),
+        ("Departmental", "No", "Commercial", "Surface Miner"),
+        ("Departmental", "No", "Commercial", "Shovel-Dumper"),
+        ("Departmental", "No", "NCI", "Surface Miner"),
+        ("Departmental", "No", "NCI", "Shovel-Dumper"),
+        ("MDO", "Yes", "Commercial", "Surface Miner"),
+        ("MDO", "Yes", "Commercial", "Shovel-Dumper"),
+        ("MDO", "Yes", "NCI", "Surface Miner"),
+        ("MDO", "Yes", "NCI", "Shovel-Dumper"),
+        ("MDO", "No", "Commercial", "Surface Miner"),
+        ("MDO", "No", "Commercial", "Shovel-Dumper"),
+        ("MDO", "No", "NCI", "Surface Miner"),
+        ("MDO", "No", "NCI", "Shovel-Dumper")
     ]
     
     computed_results_col = db["computed_results"]
     computed_results_col.delete_many({})
     
-    for mining_mode, pre_tax_pre_finance, coal_price_type in scenarios:
-        print(f"Calculating scenario: {mining_mode} | Pre-tax: {pre_tax_pre_finance} | Price: {coal_price_type}...")
+    # Precompute baseline Surface Miner costs once
+    calc_sm = calculate_4_equip_costs(prod_coal, computed_partings, "Surface Miner", diesel_price=diesel_base_price if diesel_base_price > 0 else 95.0)
+    calc_explosives_sm = calculate_explosives_115(prod_coal, "Surface Miner")
+    
+    for mining_mode, pre_tax_pre_finance, coal_price_type, machinery_type in scenarios:
+        print(f"Calculating scenario: {mining_mode} | Pre-tax: {pre_tax_pre_finance} | Price: {coal_price_type} | Machinery: {machinery_type}...")
         
-        scenario_key = f"{mining_mode}_{pre_tax_pre_finance}_{coal_price_type}"
+        machinery_key = machinery_type.replace("-", "").replace(" ", "")
+        scenario_key = f"{mining_mode}_{pre_tax_pre_finance}_{coal_price_type}_{machinery_key}"
+        
+        # Calculate active costs
+        calc_active = calculate_4_equip_costs(prod_coal, computed_partings, machinery_type, diesel_price=diesel_base_price if diesel_base_price > 0 else 95.0)
+        calc_explosives_active = calculate_explosives_115(prod_coal, machinery_type)
+        
+        scenario_blasted_coal = {}
+        scenario_sm_coal = {}
+        
+        # Scenario-specific HEMM capex tracking
+        scenario_hemm_initial = {}
+        scenario_hemm_sustaining = {}
         
         # Intermediate/computed values
         cumulative_upfront_offset = 0.0
@@ -443,6 +634,22 @@ def run_calculation():
             nci = float(nci_price.get(yr_str, 0.0))
             comm = float(comm_price.get(yr_str, 0.0))
             
+            # Compute scenario-specific blasted/SM coal values
+            # Blasted Coal (Row 6)
+            if year <= 0:
+                blasted = 0.0
+            elif sm_threshold_year >= year:
+                blasted = prod  # All coal is blasted before SM takes over
+            elif machinery_type == "Surface Miner":
+                blasted = prod * blasted_coal_fraction
+            else:
+                blasted = prod
+            scenario_blasted_coal[yr_str] = round(blasted, 6)
+            
+            # Surface Miner Coal (Row 7)
+            sm_coal_val = prod - blasted
+            scenario_sm_coal[yr_str] = round(max(sm_coal_val, 0), 6)
+            
             # ----------------------------------------------------
             # 1. CAPEX Calculations (INR Cr)
             # ----------------------------------------------------
@@ -469,9 +676,17 @@ def run_calculation():
             electrical = float(electrical_initial.get(yr_str, 0.0))
             digital = float(digital_initial.get(yr_str, 0.0))
             
+            # Load baseline initial hemm and apply adjustment
+            hemm_base_val = float(hemm_initial.get(yr_str, 0.0))
+            adjusted_hemm = hemm_base_val - calc_sm["initial_capex"][yr_str] + calc_active["initial_capex"][yr_str]
+            hemm_adjusted_val = max(adjusted_hemm, 0.0)
+            
+            # Store in scenario-specific capex tracking
+            scenario_hemm_initial[yr_str] = round(hemm_adjusted_val, 6)
+            
             # HEMM, Workshop, Dewatering depend on mode
             if mining_mode == "Departmental":
-                hemm = float(hemm_initial.get(yr_str, 0.0))
+                hemm = hemm_adjusted_val
                 workshop = float(workshop_initial.get(yr_str, 0.0))
                 dewatering = float(dewatering_initial.get(yr_str, 0.0))
             else:
@@ -487,9 +702,17 @@ def run_calculation():
             
             owner_initial_tot = initial_owner_sum + upfront + owner_initial_cont + owner_idc
             
+            # Load baseline replacement hemm and apply adjustment
+            repl_base_val = float(hemm_sustaining.get(yr_str, 0.0))
+            adjusted_repl = repl_base_val - calc_sm["sustaining_capex"][yr_str] + calc_active["sustaining_capex"][yr_str]
+            repl_adjusted_val = max(adjusted_repl, 0.0)
+            
+            # Store in scenario-specific capex tracking
+            scenario_hemm_sustaining[yr_str] = round(repl_adjusted_val, 6)
+            
             # Owner Sustaining capex
             if mining_mode == "Departmental":
-                mining_repl = float(hemm_sustaining.get(yr_str, 0.0))
+                mining_repl = repl_adjusted_val
             else:
                 mining_repl = 0.0
                 
@@ -517,13 +740,13 @@ def run_calculation():
             
             # MDO CAPEX
             if mining_mode == "MDO":
-                mdo_hemm = float(hemm_initial.get(yr_str, 0.0))
+                mdo_hemm = hemm_adjusted_val
                 mdo_workshop = float(workshop_initial.get(yr_str, 0.0))
                 mdo_dewatering = float(dewatering_initial.get(yr_str, 0.0))
                 mdo_initial_cont = (mdo_hemm + mdo_workshop + mdo_dewatering) * 0.15
                 mdo_initial_tot = mdo_hemm + mdo_workshop + mdo_dewatering + mdo_initial_cont
                 
-                mdo_mining_repl = float(hemm_sustaining.get(yr_str, 0.0))
+                mdo_mining_repl = repl_adjusted_val
                 mdo_sust_cont = mdo_mining_repl * 0.15
                 mdo_sust_tot = mdo_mining_repl + mdo_sust_cont
                 mdo_tot_capex = mdo_initial_tot + mdo_sust_tot
@@ -566,10 +789,20 @@ def run_calculation():
                 # If Departmental mode, fetch departmental items from Owner OPEX sheet
                 if mining_mode == "Departmental":
                     diesel_val = float(owner_opex_sched.get("Diesel", {}).get(yr_str, 0.0))
+                    diesel_val = max(diesel_val - calc_sm["diesel"][yr_str] + calc_active["diesel"][yr_str], 0.0)
+                    
                     lub_val = float(owner_opex_sched.get("Lubrication", {}).get(yr_str, 0.0))
+                    lub_val = max(lub_val - calc_sm["lubrication"][yr_str] + calc_active["lubrication"][yr_str], 0.0)
+                    
                     spares_val = float(owner_opex_sched.get("HEMM Spares (including drill consumables)", {}).get(yr_str, 0.0))
+                    spares_val = max(spares_val - calc_sm["spares"][yr_str] + calc_active["spares"][yr_str], 0.0)
+                    
                     tyres_val = float(owner_opex_sched.get("Tyres", {}).get(yr_str, 0.0))
+                    tyres_val = max(tyres_val - calc_sm["tyres"][yr_str] + calc_active["tyres"][yr_str], 0.0)
+                    
                     explosives_val = float(owner_opex_sched.get("Explosives", {}).get(yr_str, 0.0))
+                    explosives_val = max(explosives_val - calc_explosives_sm[yr_str] + calc_explosives_active[yr_str], 0.0)
+                    
                     rehandling_val = float(owner_opex_sched.get("Rehandling", {}).get(yr_str, 0.0))
                 else:
                     diesel_val = 0.0
@@ -726,7 +959,8 @@ def run_calculation():
             "switches": {
                 "mining_mode": mining_mode,
                 "pre_tax_pre_finance": pre_tax_pre_finance,
-                "coal_price_type": coal_price_type
+                "coal_price_type": coal_price_type,
+                "coal_mining_machinery": machinery_type
             },
             "results": {
                 "capex": {
@@ -738,7 +972,9 @@ def run_calculation():
                     "mdo_total": capex_total_mdo,
                     "project_initial": capex_initial_project,
                     "project_sustaining": capex_sustaining_project,
-                    "project_total": capex_total_project
+                    "project_total": capex_total_project,
+                    "hemm_initial": scenario_hemm_initial,
+                    "hemm_sustaining": scenario_hemm_sustaining
                 },
                 "opex": {
                     "diesel": opex_diesel,
@@ -786,8 +1022,8 @@ def run_calculation():
                     "partings": computed_partings,
                     "ob_volume": computed_ob,
                     "chp_rehandling": computed_chp_reh,
-                    "blasted_coal": computed_blasted,
-                    "sm_coal": computed_sm_coal,
+                    "blasted_coal": scenario_blasted_coal,
+                    "sm_coal": scenario_sm_coal,
                     "stripping_ratio": computed_stripping_ratio,
                     "rehandling_cost": computed_rehandling_cost,
                     
@@ -815,8 +1051,8 @@ def run_calculation():
                     "partings": lom_partings,
                     "ob_volume": lom_ob,
                     "chp_rehandling": lom_chp_reh,
-                    "blasted_coal": lom_blasted,
-                    "sm_coal": lom_sm_coal,
+                    "blasted_coal": sum(scenario_blasted_coal.values()),
+                    "sm_coal": sum(scenario_sm_coal.values()),
                     "stripping_ratio": lom_stripping_ratio,
                     "rehandling_cost": lom_rehandling_cost,
                     

@@ -26,11 +26,15 @@ export function useScenarioData() {
   const [error, setError] = useState<string | null>(null);
 
   // Build scenario key from current switch state
-  const scenarioKey = useMemo(
-    () =>
-      `${switches.miningMode}_${switches.preTaxPreFinance}_${switches.coalPriceType}`,
-    [switches.miningMode, switches.preTaxPreFinance, switches.coalPriceType]
-  );
+  const scenarioKey = useMemo(() => {
+    const machineryKey = switches.coalMiningMachinery.replace(/[- ]/g, "");
+    return `${switches.miningMode}_${switches.preTaxPreFinance}_${switches.coalPriceType}_${machineryKey}`;
+  }, [
+    switches.miningMode,
+    switches.preTaxPreFinance,
+    switches.coalPriceType,
+    switches.coalMiningMachinery,
+  ]);
 
   // Fetch scenario data
   const fetchScenario = useCallback(async () => {
@@ -74,9 +78,16 @@ export function useScenarioData() {
     ];
 
     if (isDepartmental) {
+      const dynamicHemmInitial = scenario.results.capex.hemm_initial
+        ? sumYearly(scenario.results.capex.hemm_initial)
+        : capexBreakdown.hemm_initial;
+      const dynamicHemmSustaining = scenario.results.capex.hemm_sustaining
+        ? sumYearly(scenario.results.capex.hemm_sustaining)
+        : capexBreakdown.hemm_replacement;
+
       components.push({
         name: "HEMM (Initial + Replacement)",
-        value: capexBreakdown.hemm_initial + capexBreakdown.hemm_replacement,
+        value: dynamicHemmInitial + dynamicHemmSustaining,
       });
     }
 

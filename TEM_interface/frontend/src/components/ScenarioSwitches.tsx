@@ -13,25 +13,27 @@ export function ScenarioSwitches({ switches, onChange }: ScenarioSwitchesProps) 
         Scenario Controls
       </div>
 
-      {/* Switch 1: Coal Mining Machinery (Coming Soon) */}
+      {/* Switch 1: Coal Mining Machinery */}
       <div className="switch-group">
-        <div className="switch-group__label">
-          Coal Mining Machinery <span className="badge badge--coming-soon">Coming Soon</span>
-        </div>
+        <div className="switch-group__label">Coal Mining Machinery</div>
         <div className="switch-toggle">
           <button
-            className={`switch-toggle__option switch-toggle__option--disabled ${
+            className={`switch-toggle__option ${
               switches.coalMiningMachinery === "Surface Miner"
                 ? "switch-toggle__option--active"
                 : ""
             }`}
-            disabled
+            onClick={() => onChange({ coalMiningMachinery: "Surface Miner" })}
           >
             Surface Miner
           </button>
           <button
-            className="switch-toggle__option switch-toggle__option--disabled"
-            disabled
+            className={`switch-toggle__option ${
+              switches.coalMiningMachinery === "Shovel-Dumper"
+                ? "switch-toggle__option--active"
+                : ""
+            }`}
+            onClick={() => onChange({ coalMiningMachinery: "Shovel-Dumper" })}
           >
             Shovel-Dumper
           </button>

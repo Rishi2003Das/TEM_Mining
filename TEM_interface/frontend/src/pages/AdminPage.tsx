@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { PasswordGate } from "../components/PasswordGate";
 import { API_BASE, YEAR_HEADERS } from "../types";
 

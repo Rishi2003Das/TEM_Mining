@@ -6,7 +6,7 @@ import pymongo
 # MongoDB connection configuration
 CONNECTION_STRING = "mongodb+srv://rishikakalidas:KNris$0068@tem.khdmanp.mongodb.net/?appName=tem"
 DATABASE_NAME = "tem"
-EXCEL_FILE = "Option 3_15 Mtpa_rev1_smg opt2 quality.xlsx"
+EXCEL_FILE = "IN1411_Radhikapur_Option 3_15 Mtpa_rev1_20260612.xlsx"
 
 # Mapping of JSON files to collection names
 JSON_FILES_MAP = {

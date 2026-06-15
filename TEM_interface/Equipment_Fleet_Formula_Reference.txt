@@ -1,0 +1,755 @@
+================================================================================
+  EQUIPMENT & FLEET INTERLINKED FORMULA REFERENCE
+  Source: IN1411_Radhikapur_Option 3_15 Mtpa_rev1_20260612.xlsx
+  Generated: 2026-06-15
+================================================================================
+
+TABLE OF CONTENTS:
+  1. SHEET OVERVIEW & DATA FLOW DIAGRAM
+  2. EQUIPMENT MASTER DATA (FIXED INPUT - NO CHANGE REQUIRED)
+  3. EQUIPMENT SHEET (Lookup Bridge)
+  4. ASSUMPTIONS DASHBOARD (Key Parameters)
+  5. PRODUCTION SCHEDULE (Hard Inputs)
+  6. PRODUCTIVITY SHEET (Calculations)
+  7. PRODUCTIVITY - SM SHEET (Surface Miner)
+  8. FLEET SHEET (Fleet Sizing Calculations)
+  9. LIST OF ALL EQUIPMENT AVAILABLE
+
+================================================================================
+1. SHEET OVERVIEW & DATA FLOW DIAGRAM
+================================================================================
+
+Data flows in this order:
+
+  Equipment Master Data  ──►  Equipment (VLOOKUP bridge)
+         │                         │
+         │                         ▼
+         │                    Productivity ◄── Assumptions_Dashboard
+         │                         │                    │
+         │                         ▼                    │
+         │                      Fleet  ◄────────────────┘
+         │                         │
+         │                         ▼
+         │              Production Schedule (Hard Inputs)
+         │                         │
+         └─────────────────────────┘
+
+KEY RELATIONSHIPS:
+- Equipment Master Data: FIXED INPUT database of all equipment specs (Make, Model, Cost, Engine HP, Capacity, Availability, Utilization, Life, Spares%, Fuel, Power, Tyres)
+- Equipment Sheet: Acts as a LOOKUP BRIDGE - uses VLOOKUP to pull data from Equipment Master Data for the specific equipment selected in Fleet
+- Fleet Sheet: Selects which equipment to use (dropdown) and references Equipment via VLOOKUP; also reads Production Schedule volumes and Productivity outputs to calculate fleet counts
+- Productivity Sheet: Calculates annual production capacity per machine using equipment specs (from Equipment) and assumption parameters (from Assumptions_Dashboard)
+- Assumptions_Dashboard: Contains SRK standard assumptions (density, swell factor, working days, etc.)
+- Production Schedule: Contains year-by-year hard inputs (coal/ore, waste, haul distances, bench heights)
+
+
+================================================================================
+2. EQUIPMENT MASTER DATA (FIXED INPUT - NO CHANGE REQUIRED)
+================================================================================
+
+This sheet is the MASTER DATABASE of all equipment. All values are DIRECT/FIXED inputs.
+The Equipment sheet uses VLOOKUP to pull values from here.
+
+COLUMN STRUCTURE (Row 1 is header row):
+  Col B: Equipment Name (Lookup Key)
+  Col C: List (Import/Indigenous)
+  Col D: Availability (date)
+  Col E: Make
+  Col F: Model
+  Col G: Cost (Incl GST) INR
+  Col H: Engine HP
+  Col I: Capacity (mm, cum, t)
+  Col J: Heaped Vol (cum)
+  Col K: Availability %
+  Col L: Utilization %
+  Col M: Working hours (hours/year)
+  Col N: hours/day
+  Col O: Life (hours)
+  Col P: Year
+  Col Q: Spares %
+  Col R-T: Fuel (Ltr/hr) - Idling, Working, Average
+  Col U: Power (kW)
+  Col V: Tyres (nos)
+  Col W: Tyres Cost (Incl GST 28%) INR
+
+EQUIPMENT MASTER DATA VALUES (Complete List):
+Note: Working hours = 7920 hrs/year base × Availability × Utilization
+      hours/day = 24 × Availability × Utilization
+
+--- DRILL MACHINES ---
+| Equipment Name                    | Make     | Model    | Cost(INR)  | HP   | Capacity | Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares% | Fuel(avg) |
+|-----------------------------------|----------|----------|------------|------|----------|--------|-------|---------|---------|----------|---------|---------|-----------|
+| Drill Machine/ 250mm diameter     | Revathi  | C750E    | 47,200,000 | 500  | 250mm    | 80%    | 75%   | 4,752   | 14.4    | 24,000   | 5       | 10%     | 50 ltr/hr |
+| Drill Machine/ 160mm diameter     | Atlas    | IDM30    | 11,900,000 | 425  | 160mm    | 80%    | 70%   | 4,435.2 | 13.44   | 24,000   | 5       | 10%     | 38 ltr/hr |
+| Drill Machine/ 115mm diameter     | Atlas    | ICM260   | 5,800,000  | 295  | 115mm    | 80%    | 70%   | 4,435.2 | 13.44   | 24,000   | 5       | 10%     | 28 ltr/hr |
+
+--- EXCAVATOR / SHOVEL ---
+| Equipment Name                                          | Make      | Model    | Cost(INR)   | HP      | Cap(cum)| Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares% | Fuel(avg)  | Power(kW) |
+|---------------------------------------------------------|-----------|----------|-------------|---------|---------|--------|-------|---------|---------|----------|---------|---------|------------|-----------|
+| Electric Rope Shovel/ 38.3 cum                          | CAT       | 7295     | 1,039,000,000| 2,850  | 38.3    | 80%    | 75%   | 4,752   | 14.4    | 135,000  | 26      | 1,350,000  | -          | 2,125 kW  |
+| Electric Rope Shovel/ 26.7 cum                          | -         | 6040 FS  | 490,000,000 | 2,033   | 26.7    | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Electric Rope Shovel/ 22 cum                            | -         | 6040     | 430,000,000 | 2,033   | 22      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Electro Hydraulic Shovel/ 22 cum                        | CAT       | -        | 340,000,000 | 1,530   | 22      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Electric Rope Shovel/ 20 cum                            | TE        | -        | 330,000,000 | 2,033   | 20      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Electric Rope Shovel/ 17 cum                            | CAT       | 6030 FS  | 350,000,000 | 1,530   | 17      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Electric Rope Shovel/12 cum (CAT)                       | CAT       | 6020B    | 253,000,000 | 1,464   | 12      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Diesel hydraulic shovel/ 10 cum                         | CAT       | 6018 AC FS| 185,500,000| 1,150   | 10      | 80%    | 80%   | 5,068.8 | 15.36   | 30,000   | 5       | 12.5%   | -          | 857.6 kW  |
+| Diesel hydraulic shovel/ 10 cum (I)                     | -         | 6018 FS  | 185,000,000| 1,150   | 10      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Diesel hydraulic shovel/ 12 cum (Komatsu)               | Komatsu   | PC 2000-8| 180,000,000| 960     | 12      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Diesel hydraulic shovel/ 12 cum (CAT)                   | CAT       | 6015B    | 75,000,000 | 884     | 12      | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Diesel hydraulic shovel/ 8.1 cum                        | -         | 60158    | 82,000,000 | 413     | 8.1     | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Diesel hydraulic shovel/ 6.5 cum                        | -         | 601E     | 50,000,000 | 352     | 6.5     | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | -         |
+| Diesel hydraulic shovel/ 6.0 cum                        | -         | 390FL    | 49,500,000 | 456     | 6       | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -          | 732 kW    |
+| Diesel hydraulic Shovel/ 4.6 cum                        | CAT       | 374FL    | 43,500,000 | 472     | 4.6     | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 48 ltr/hr  | -         |
+| Diesel hydraulic Shovel/ 3.4 cum                        | CAT       | 349D2L   | 22,500,000 | 295     | 3.4     | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 30 ltr/hr  | -         |
+| Diesel hydraulic Shovel with Xcentric Ripper/ 3.4 cum   | CAT + Xcentric| -    | 28,500,000 | 291     | 3.4     | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 30 ltr/hr  | -         |
+| Diesel hydraulic Shovel/ 3.0 cum                        | L&T       | 300 CKD-I| 12,000,000 | 291     | 3       | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 28 ltr/hr  | -         |
+| Diesel hydraulic Shovel/ 1.0 cum                        | CAT       | 320D2L   | 8,640,000  | 146     | 1       | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 15 ltr/hr  | -         |
+
+--- SURFACE MINER ---
+| Equipment Name        | Make     | Model   | Cost(INR)  | HP   | Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares%  | Fuel(avg) |
+|-----------------------|----------|---------|------------|------|--------|-------|---------|---------|----------|---------|----------|-----------|
+| Surface Miner/ 2200 SM| Writgen  | 2200SM  | 76,700,000 | 950  | 85%    | 80%   | 5,385.6 | 16.32   | 30,000   | 5       | 16.67%   | 90 ltr/hr |
+| Surface Miner/ 3800 SM| L&T      | KSM 403 | 67,100,000 | 850  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+
+--- FRONT END LOADER ---
+| Equipment Name                   | Make     | Model       | Cost(INR)  | HP   | Cap(cum)| Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares%  | Fuel(avg) | Tyres   | Tyre Cost |
+|----------------------------------|----------|-------------|------------|------|---------|--------|-------|---------|---------|----------|---------|----------|-----------|---------|-----------|
+| Front End Loader/ 10.0 cum       | -        | WA 800-3EO  | 140,000,000| 648  | 10      | 80%    | 70%   | 4,435.2 | 13.44   | -        | -       | -        | -         | -       | -         |
+| Front End Loader/ 10.7~12.3 cum  | CAT      | 992K        | 126,000,000| 814  | 12.3    | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         | -       | -         |
+| Front End Loader/ 8.6~10 cum     | CAT      | 990K        | 84,900,000 | 688  | 8.8     | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         | -       | -         |
+| Front End Loader/ 6.4 cum        | CAT      | 988K        | 45,200,000 | 541  | 6.4     | 85%    | 85%   | 5,722.2 | 17.34   | 30,000   | 5       | 16.67%   | 55 ltr/hr | 4       | 150,000   |
+| Front End Loader/ 2.5 cum        | Komatsu  | -           | 4,000,000  | 186  | 2.5     | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         | -       | -         |
+| Front End Loader/ 1.7cum         | Komatsu  | -           | 2,900,000  | 128  | 1.7     | 80%    | 50%   | 3,168   | 9.6     | 30,000   | 9       | 16.67%   | 12 ltr/hr | 4       | 76,800    |
+
+--- DUMPER / TRUCK ---
+| Equipment Name  | Make     | Model      | Cost(INR)   | HP    | Cap(t) | Heaped(cum)| Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares% | Fuel(avg)  | Tyres | Tyre Cost  |
+|-----------------|----------|------------|-------------|-------|--------|------------|--------|-------|---------|---------|----------|---------|---------|------------|-------|------------|
+| Dumper/ 240t    | CAT      | 793D       | 286,500,000 | 2,415 | 240    | 129        | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | 242 ltr/hr | -     | 150,000    |
+| Dumper/ 220t    | BEML     | -          | 114,000,000 | 2,100 | 220    | 126        | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | -          | -     | -          |
+| Dumper/ 191t    | CAT      | 789D       | 258,700,000 | 1,600 | 191    | 123        | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | -          | -     | -          |
+| Dumper/ 140t    | CAT      | 785D       | 114,000,000 | 1,451 | 140    | 79         | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | -          | -     | -          |
+| Dumper/ 100t    | CAT      | 777D       | 40,839,680  | 1,024 | 100    | 60.1       | 80%    | 75%   | 4,752   | 14.4    | 50,000   | 10      | 12.5%   | 50 ltr/hr  | 6     | 800,000    |
+| Dumper/ 100t    | Komatsu  | HD785-7    | 82,700,000  | 1,200 | 100    | 60.1       | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | -          | -     | -          |
+| Dumper/ 100t    | BEML     | BH100      | 62,700,000  | 710   | 60     | 55.2       | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | -          | -     | -          |
+| Dumper/ 60t     | BEML     | BH60M      | 34,500,000  | 644   | 60     | 34         | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | -          | -     | -          |
+| Dumper/ 50t     | CAT      | 773D       | 25,300,000  | 710   | 50     | 32         | 80%    | 75%   | 4,752   | 14.4    | -        | -       | 12.5%   | -          | -     | -          |
+| Dumper/ 40t     | CAT      | 770G       | 18,422,000  | 515   | 38.6   | 25.2       | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 20 ltr/hr  | 6     | 153,600    |
+| Tipper/ 35t     | VOLVO    | FM400      | 13,500,000  | 460   | 35     | 18         | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 19 ltr/hr  | 12    | 75,000     |
+| Tipper/ 20t     | HINO     | 500FM8J    | 4,500,000   | 183   | 20     | 14         | 80%    | 75%   | 4,752   | 14.4    | 30,000   | 6       | 12.5%   | 11 ltr/hr  | 6     | 50,000     |
+
+--- DOZER ---
+| Equipment Name          | Make     | Model         | Cost(INR)   | HP   | Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares%  | Fuel(avg) |
+|-------------------------|----------|---------------|-------------|------|--------|-------|---------|---------|----------|---------|----------|-----------|
+| Track Dozer/ 850 HP     | CAT      | D11T          | 179,200,000 | 850  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+| Track Dozer/ 722 HP     | CAT      | D10T2         | 30,000,000  | 722  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+| Track Dozer/ 525 HP     | Komatsu  | D 375A-6      | 54,400,000  | 525  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+| Track Dozer/ 405 HP     | CAT      | D9R           | 50,000,000  | 405  | 80%    | 60%   | 3,801.6 | 11.52   | 24,000   | 6       | 16.67%   | 41 ltr/hr |
+| Track Dozer/ 320 HP     | BEML     | BD 125        | 43,000,000  | 320  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+| Track Dozer/ 320 HP     | CAT      | D8R           | 34,500,000  | 310  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+| Track Dozer/ 192 HP     | CAT      | D6R           | 17,390,000  | 192  | 80%    | 60%   | 3,801.6 | 11.52   | 24,000   | 6       | 16.67%   | 20 ltr/hr |
+| Track Dozer/ 165 HP     | CAT      | D6G(LGP)-2A   | 14,900,000  | 165  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+| Wheel Dozer             | CAT      | 834K          | 54,125,955  | 496  | 80%    | 60%   | 3,801.6 | 11.52   | 30,000   | 7       | 12.5%    | 50 ltr/hr |
+| Ripper Dozer/ 450TPH    | Komatsu  | 475A (510 HP) | 45,000,000  | 510  | 85%    | 80%   | 5,385.6 | 16.32   | 30,000   | 5       | 12.5%    | 51 ltr/hr |
+| Ripper Dozer/600TPH     | CAT      | CAT5A-6       | 120,000,000 | 890  | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -        | -         |
+
+--- GRADER ---
+| Equipment Name                 | Make     | Model  | Cost(INR)   | HP   | Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares% | Fuel(avg) | Tyres | Tyre Cost |
+|--------------------------------|----------|--------|-------------|------|--------|-------|---------|---------|----------|---------|---------|-----------|-------|-----------|
+| Motor Grader/ 290 - 348 HP     | CAT      | 16M3   | 51,444,657  | 300  | 80%    | 60%   | 3,801.6 | 11.52   | 30,000   | 7       | 12.5%   | 60 ltr/hr | 4     | 256,000   |
+| Motor Grader/ 259 - 275 HP     | CAT      | 14M    | 31,314,444  | -    | 80%    | 75%   | 4,752   | 14.4    | -        | -       | -       | -         | -     | -         |
+| Motor Grader/ 145 HP           | Komatsu  | 120K2  | 15,066,260  | 145  | 80%    | 40%   | 2,534.4 | 7.68    | 30,000   | 11      | 12.5%   | 15 ltr/hr | 4     | 192,000   |
+
+--- CRANE ---
+| Equipment Name  | Make          | Model | Cost(INR)   | Avail% | Util% | Hrs/yr  | Hrs/day | Life(hrs)| Life(yr)| Spares% | Fuel(avg) | Tyres | Tyre Cost |
+|-----------------|---------------|-------|-------------|--------|-------|---------|---------|----------|---------|---------|-----------|-------|-----------|
+| Crane/ 120t     | Manitowoc(USA)| -     | 68,639,626  | 80%    | 25%   | 1,584   | 4.8     | 24,000   | 15      | 5%      | 18 ltr/hr | 6     | 51,200    |
+| Crane/ 100t     | -             | -     | 90,000,000  | 80%    | 25%   | 1,584   | 4.8     | -        | -       | -       | -         | -     | -         |
+| Crane/ 60t      | -             | -     | 16,520,000  | 80%    | 25%   | 1,584   | 4.8     | 24,000   | 15      | 5%      | 18 ltr/hr | 6     | 51,200    |
+| Crane/ 40t      | -             | -     | 21,180,719  | 80%    | 25%   | 1,584   | 4.8     | -        | -       | -       | -         | -     | -         |
+| Crane/ 30t      | Escorts        | RT30  | 24,800,000  | 80%    | 25%   | 1,584   | 4.8     | -        | -       | -       | 17 ltr/hr | -     | 36,410    |
+| Crane/ 20t      | -             | -     | 40,000,000  | 80%    | 25%   | 1,584   | 4.8     | -        | -       | -       | -         | -     | -         |
+| Crane/ 12t      | A1 HED        | VH12C | 1,863,000   | 80%    | 25%   | 1,584   | 4.8     | -        | -       | -       | -         | -     | -         |
+| Crane/ 8t       | -             | Hydra8| 1,200,000   | 80%    | 25%   | 1,584   | 4.8     | -        | -       | -       | -         | -     | -         |
+
+
+================================================================================
+3. EQUIPMENT SHEET (Lookup Bridge)
+================================================================================
+
+The Equipment sheet acts as a LOOKUP BRIDGE between the Fleet sheet (which selects equipment)
+and the Equipment Master Data sheet (which stores all specs).
+
+STRUCTURE: Row 1 has column counter (C1=1, D1=2, ..., V1=20)
+These counters are used in VLOOKUP column_index references.
+
+COLUMN MAPPING:
+  Col C (1): Equipment Name       Col D (2): Make
+  Col E (3): Model                Col F (4): Cost (Incl GST) INR
+  Col G (5): Engine HP            Col H (6): Capacity (mm/cum/t)
+  Col I (7): Heaped Vol (cum)     Col J (8): Availability %
+  Col K (9): Utilization %        Col L (10): Working hours/year
+  Col M (11): hours/day           Col N (12): Life (hours)
+  Col O (13): Year                Col P (14): Spares %
+  Col Q (15): Fuel Ltr/hr (idle)  Col R (16): Fuel Ltr/hr (work)
+  Col S (17): Fuel Ltr/hr (avg)   Col T (18): Power kW
+  Col U (19): Tyres (nos)         Col V (20): Tyre Cost (INR)
+
+EQUIPMENT SELECTION (Col C pulls from Fleet sheet):
+  Equipment!C5  = Fleet!C11  → Selected Coal/Ore Drill (e.g., "Drill Machine/ 115mm diameter")
+  Equipment!C6  = Fleet!C15  → Selected Waste IB Thin Parting Drill (e.g., "Drill Machine/ 160mm diameter")
+  Equipment!C7  = Fleet!C19  → Selected Waste Thick Parting Drill (e.g., "Drill Machine/ 250mm diameter")
+  Equipment!C8  = Fleet!C24  → Selected Top Soil Shovel (e.g., "Diesel hydraulic Shovel/ 1.0 cum")
+  Equipment!C9  = Fleet!C29  → Selected Thin Parting+Coal Shovel (e.g., "Diesel hydraulic Shovel/ 4.6 cum")
+  Equipment!C10 = Fleet!C33  → Selected Waste OB+Thick Parting Shovel (e.g., "Diesel hydraulic shovel/ 10 cum")
+  Equipment!C11 = Fleet!C38  → Selected Miscellaneous Shovel 01 (e.g., "Diesel hydraulic Shovel/ 3.4 cum")
+  Equipment!C12 = Fleet!C43  → Selected Miscellaneous Shovel 02 (e.g., "Diesel hydraulic Shovel/ 3.4 cum")
+  Equipment!C13 = Fleet!C49  → Selected Surface Miner (e.g., "Surface Miner/ 2200 SM")
+  Equipment!C15 = Fleet!C54  → Selected FEL for SM (e.g., "Front End Loader/ 6.4 cum")
+  Equipment!C16 = Fleet!C59  → Selected FEL Miscellaneous (e.g., "Front End Loader/ 1.7cum")
+  Equipment!C17 = Fleet!C65  → Selected Topsoil Dumper (e.g., "Tipper/ 20t")
+  Equipment!C18 = Fleet!C70  → Selected Thin Parting Dumper (e.g., "Tipper/ 35t")
+  Equipment!C19 = Fleet!C75  → Selected Waste OB Dumper (e.g., "Dumper/ 100t")
+  Equipment!C20 = Fleet!C80  → Selected Coal Dumper (e.g., "Dumper/ 40t")
+  Equipment!C21 = Fleet!C86  → Selected Dozer 1 (e.g., "Track Dozer/ 405 HP")
+  Equipment!C22 = Fleet!C88  → Selected Dozer 2 (e.g., "Wheel Dozer")
+  Equipment!C23 = Fleet!C90  → Selected Ripper Dozer (e.g., "Ripper Dozer/ 450TPH")
+  Equipment!C24 = Fleet!C92  → Selected Dozer 3 (e.g., "Track Dozer/ 192 HP")
+  Equipment!C25 = Fleet!C96  → Selected Grader 1 (e.g., "Motor Grader/ 290 - 348 HP")
+  Equipment!C26 = Fleet!C98  → Selected Grader 2 (e.g., "Motor Grader/ 145 HP")
+  Equipment!C27 = Fleet!C102 → Selected Crane 1 (e.g., "Crane/ 120t")
+  Equipment!C28 = Fleet!C104 → Selected Crane 2 (e.g., "Crane/ 60t")
+
+VLOOKUP FORMULA PATTERN (all Equipment data columns D-V):
+  Equipment!D5 = IFNA(VLOOKUP($C5, 'Equipment Master Data'!$B$5:$W$100, 4, FALSE), "")
+  Equipment!E5 = IFNA(VLOOKUP($C5, 'Equipment Master Data'!$B$5:$W$100, 5, FALSE), "")
+  ... (same pattern for all columns, incrementing column_index from 4 to 22)
+
+  With EMBEDDED VALUES for current selections:
+  For "Drill Machine/ 115mm diameter":
+    Make=Atlas, Model=ICM260, Cost=5,800,000, HP=295, Cap=115mm, Avail=80%, Util=70%,
+    Hrs/yr=4435.2, Hrs/day=13.44, Life=24000hrs, Life=5yr, Spares=10%, Fuel=28 ltr/hr
+  
+  For "Diesel hydraulic Shovel/ 4.6 cum":
+    Make=CAT, Model=374FL, Cost=43,500,000, HP=472, Cap=4.6cum, Avail=80%, Util=75%,
+    Hrs/yr=4752, Hrs/day=14.4, Life=30000hrs, Life=6yr, Spares=12.5%, Fuel=48 ltr/hr
+
+  For "Dumper/ 40t":
+    Make=CAT, Model=770G, Cost=18,422,000, HP=515, Cap=38.6t, Heaped=25.2cum,
+    Avail=80%, Util=75%, Hrs/yr=4752, Hrs/day=14.4, Life=30000hrs, Life=6yr,
+    Spares=12.5%, Fuel=20 ltr/hr, Tyres=6, TyreCost=153,600
+
+
+================================================================================
+4. ASSUMPTIONS DASHBOARD (Key Parameters Used in Formulas)
+================================================================================
+
+Referenced cells used in Productivity and Fleet calculations:
+
+  D6  = FY Start Date of mining operations = 2029-01-01
+  D10 = Rated Capacity = 15 Mtpa
+  D12 = Life of Mine = 19 years
+  D13 = ML Area = 1048 ha
+
+  D27 = Working days/year = 330
+  D28 = Working days/year (used in productivity) = 330
+  D29 = Working hours in a year = 7920 (= 24 × 330)
+
+  D32 = In-situ density of Coal/Ore = 1.72 t/cum
+  D33 = In-situ density of Waste (OB/IB) = 2.1 t/cum
+  D34 = Swell Factor for Coal = 0.2 (20%)
+  D35 = Swell Factor for Waste = 0.2 (20%)
+
+  D113 = Dumper Standby Reserve = 0% (standby factor applied to truck fleet)
+  D115 = Leave and Sick Reserves = 15%
+
+  L6 = "Yes" / "No" flag for Owner/MDO model (affects debt % formulas)
+
+
+================================================================================
+5. PRODUCTION SCHEDULE (Hard Inputs Referenced by Fleet & Productivity)
+================================================================================
+
+Key rows referenced by other sheets (all year-by-year columns E to AA = Year -4 to 19):
+
+  Row 3:  Year Numbers (-4, -3, -2, -1, 1, 2, ..., 19)
+  Row 5:  Coal/Ore Production (Mt) — HARD INPUT
+  Row 6:  Coal/Ore Production from D&B (Mt) — HARD INPUT
+  Row 7:  Coal/Ore Production from SM (Mt) — HARD INPUT  
+  Row 9:  Top Soil (Mbcm) — HARD INPUT
+  Row 10: Overburden (OB) (Mbcm) — HARD INPUT
+  Row 11: Total Waste (including IB) (Mbcm) — HARD INPUT
+  Row 12: Miscellaneous Volume (Mt) — HARD INPUT
+  Row 13: Rehandling Volume (Mbcm) — HARD INPUT
+  
+  Row 23: Haul Distance - ROM Coal (km, one way) — HARD INPUT
+  Row 24: Haul Distance - Coal Rehandle (km) — calculated or input
+  Row 25: Haul Distance - IB Thin Parting (km) — HARD INPUT
+  Row 26: Haul Distance - Waste OB+Thick Parting (km) — HARD INPUT
+  Row 27: Haul Distance - Top Soil (km) — HARD INPUT
+  Row 28: Haul Distance - Miscellaneous (km) — HARD INPUT
+  
+  Row 30: Bench Height - Coal/Ore (m) — HARD INPUT (e.g., 5m)
+  Row 32: Bench Height - Waste (m) — HARD INPUT (e.g., 10m)
+
+
+================================================================================
+6. PRODUCTIVITY SHEET (Calculations)
+================================================================================
+
+6.1 ASSUMPTIONS (SRK Standard Parameters - Row 5-11)
+─────────────────────────────────────────────────────
+  Bucket fill factor        = 90%     (D5)
+  Bucket cycle time         = 35 sec  (D6)
+  Shovel & Dumper positioning = 45 sec (D7)
+  Truck Fill Factor         = 90%     (D8)
+  Truck waiting at shovel   = 30 sec  (D9)
+  Speed of Loaded dumper    = 25 kmph (D10)
+  Speed of Empty dumper     = 30 kmph (D11)
+
+6.2 DRILL MACHINE PRODUCTIVITY (Rows 16-26)
+────────────────────────────────────────────
+  Three categories:
+    D = Waste Thick Parting (OB/IB)  
+    E = Coal/Ore  
+    F = Waste IB (Thin Parting)
+
+  Bench Height:
+    D17 = 'Production Schedule'!D32 = 10m (Waste)
+    E17 = 'Production Schedule'!D30 = 5m  (Coal)
+    F17 = 'Production Schedule'!D32 = 10m (Waste)
+
+  Drill Diameter (from Equipment Master via Equipment sheet):
+    D18 = VLOOKUP(Fleet!$C19, Equipment!$C$5:$H$7, Equipment!$H$1, FALSE) = 250mm
+    E18 = VLOOKUP(Fleet!$C11, Equipment!$C$5:$H$7, Equipment!$H$1, FALSE) = 115mm
+    F18 = VLOOKUP(Fleet!$C15, Equipment!$C$5:$H$7, Equipment!$H$1, FALSE) = 160mm
+
+  Burden: D19=4.5m, E19=4m, F19=4.5m (fixed input)
+  Spacing: D20=6m, E20=5m, F20=6m (fixed input)
+  Sub-grade drilling: D21=10%, E21=10%, F21=10% (fixed input)
+  Effective drilling rate: D22=30 m/hr, E22=35 m/hr, F22=30 m/hr (fixed input)
+
+  FORMULAS:
+  Drill Yield (cum/m):
+    D23 = BenchHeight × Burden × Spacing / (BenchHeight + BenchHeight × SubGrade)
+    D23 = D17 × D19 × D20 / (D17 + D17 × D21) = 10×4.5×6/(10+10×0.1) = 24.55 cum/m
+
+  Working hours per day:
+    D24 = VLOOKUP(Fleet!$C19, Equipment!$C$5:$M$7, Equipment!$M$1, FALSE)
+      → Pulls hours/day from Equipment for the selected 250mm drill = 14.4 hrs/day
+
+  Drilling per day (m/day):
+    D25 = D22 × Equipment!$M$7 = EffDrillingRate × hrs/day = 30 × 14.4 = 432 m/day
+
+  ROM per day (cum/yr/drill):
+    D26 = DrillingPerDay × WorkingDays × DrillYield
+    D26 = D25 × Assumptions_Dashboard!$D$28 × D23 = 432 × 330 × 24.55 = 3,499,200
+
+
+6.3 SURFACE MINER PRODUCTIVITY (Rows 28-35)
+────────────────────────────────────────────
+  Coal Production (tph):
+    D30 = 'Productivity - SM'!B36 = 928.8 tph
+
+  Working hours/year:
+    D31 = Assumptions_Dashboard!$D$29 = 7920
+
+  Availability:
+    D32 = VLOOKUP(Fleet!$C$49, Equipment!$C$13:$K$13, 8, FALSE) = 85%
+
+  Utilisation:
+    D33 = VLOOKUP(Fleet!$C$49, Equipment!$C$13:$K$13, 9, FALSE) = 80%
+
+  Annual Effective working hours:
+    D34 = D31 × D32 × D33 = 7920 × 0.85 × 0.8 = 5385.6 hrs
+
+  Annual production (t/yr):
+    D35 = D30 × D34 = 928.8 × 5385.6 = 5,002,145 t/yr
+
+
+6.4 SHOVEL/DUMPER PRODUCTIVITY (Rows 38-49)
+──────────────────────────────────────────────
+  Material types: D=Thin Parting(IB), E=Waste OB&Thick, F=Top Soil, 
+                  G=Coal/Ore, H=Misc01, I=Misc02
+  Also: K=FEL Coal/Ore, L=FEL Miscellaneous
+
+  Bucket capacity (cum):
+    D40 = VLOOKUP(Fleet!$C29, Equipment!$C$8:$V$12, Equipment!$H$1, FALSE) = 4.6 cum
+    E40 = VLOOKUP(Fleet!$C33, Equipment!$C$8:$V$12, Equipment!$H$1, FALSE) = 10 cum
+    F40 = VLOOKUP(Fleet!$C24, Equipment!$C$8:$V$12, Equipment!$H$1, FALSE) = 1 cum
+    G40 = VLOOKUP(Fleet!$C29, Equipment!$C$8:$V$12, Equipment!$H$1, FALSE) = 4.6 cum
+    K40 = VLOOKUP(Fleet!$C54, Equipment!$C$15:$V$16, Equipment!$H$1, FALSE) = 6.4 cum (FEL)
+
+  Bucket fill factor: 90% (all columns reference $D$41)
+  
+  Effective bucket capacity (bcm):
+    Waste: D42 = BucketCap × FillFactor / (1 + SwellFactor_Waste)
+           D42 = D40 × D41 / (1 + Assumptions_Dashboard!$D$35) = 4.6 × 0.9 / 1.2 = 3.45 bcm
+    Coal:  G42 = G40 × G41 / (1 + Assumptions_Dashboard!$D$34) = 4.6 × 0.9 / 1.2 = 3.45 bcm
+
+  Effective bucket capacity (tonnes):
+    Waste: D43 = D42 × Assumptions_Dashboard!$D$33 = 3.45 × 2.1 = 7.245 t
+    Coal:  G43 = G42 × Assumptions_Dashboard!$D$32 = 3.45 × 1.72 = 5.934 t
+
+  Bucket cycle time: 35 sec (all reference $D$44)
+  Positioning time: 45 sec (all reference $D$45)
+
+  No of passes to fill dumper:
+    D46 = ROUND(MIN(D55:D56) / D42, 0) 
+      → MIN of truck body capacity and actual carrying capacity / shovel bucket = 5 passes
+
+  Total Loading & Spotting time (min):
+    D47 = (CycleTime × Passes + PositioningTime) / 60
+    D47 = (35 × 5 + 45) / 60 = 3.67 min
+
+  Trucks loaded per day:
+    D48 = VLOOKUP(Equipment hours/day) × 60 / LoadingTime
+    D48 = WorkingHrs/day × 60 / D47 = 14.4 × 60 / 3.67 = 235.6 trucks/day
+
+  Total quantity shovel can load in a year (bcm/yr/shovel):
+    D49 = BucketCap(bcm) × TrucksPerDay × PassesPerTruck × WorkingDays
+    D49 = D42 × D48 × D46 × Assumptions_Dashboard!$D$28
+    D49 = 3.45 × 235.6 × 5 × 330 = 1,341,360 bcm/yr
+
+
+6.5 DUMPER PRODUCTIVITY (Rows 51-112, Year-by-Year)
+──────────────────────────────────────────────────────
+  Truck specifications (from Equipment Master via Equipment sheet):
+    D52 = Truck Capacity (t) = VLOOKUP(Fleet!$C80, Equipment!$C$17:$V$20, Equipment!$H$1, FALSE) = 38.6t
+    D53 = Heaped Capacity (cum) = VLOOKUP(Fleet!$C80, Equipment!$C$17:$V$20, Equipment!$I$1, FALSE) = 25.2 cum
+    D54 = Fill Factor = 90%
+
+  Effective body capacity (bcm):
+    Waste: D55 = HeapedCap × FillFactor / (1 + SwellFactor_Waste)
+           D55 = D53 × D54 / (1 + Assumptions_Dashboard!$D$35) = 25.2 × 0.9 / 1.2 = 18.9 bcm
+    Coal:  G55 = G53 × G54 / (1 + Assumptions_Dashboard!$D$34) = 25.2 × 0.9 / 1.2 = 18.9 bcm
+
+  Actual carrying capacity (bcm):
+    D56 = TruckCap(t) × FillFactor / DensityWaste
+    D56 = D52 × D54 / Assumptions_Dashboard!D33 = 38.6 × 0.9 / 2.1 = 16.54 bcm
+    G56 = G52 × G54 / Assumptions_Dashboard!D32 = 38.6 × 0.9 / 1.72 = 20.2 bcm
+
+  FOR EACH YEAR (columns D to AM, corresponding to Year -4 to Year 32):
+
+  Hauling distance (km, one way):
+    Coal:    Row 66 = 'Production Schedule'!{col}23 (ROM haul distance per year)
+    Coal-Rehandle: Row 72 = 'Production Schedule'!{col}24
+    Thin Parting:  Row 78 = 'Production Schedule'!{col}25
+    Waste OB:      Row 90 = 'Production Schedule'!{col}26
+    TopSoil:       Row 84 = 'Production Schedule'!{col}27
+
+  Total travel time (min):
+    Row 67 = IF(Year<=0, 0, (HaulDist/SpeedLoaded + HaulDist/SpeedEmpty) × 60)
+    e.g., H67 = IF(H$64<=0, 0, (H66/$G$59 + H66/$G$60) × 60)
+    For Year 1, Coal haul 1.6km: (1.6/25 + 1.6/30) × 60 = 7.04 min
+
+  Total Cycle time (min):
+    Row 68 = IF(TravelTime=0, 0, TravelTime + LoadingTime + (WaitShovel + WaitUnload)/60)
+    e.g., H68 = IF(H$67=0, 0, H67 + $G$47 + ($G$57 + $G$58)/60)
+    For Year 1: 7.04 + 3.67 + (30+30)/60 = 11.71 min
+
+  Total trips per day:
+    Row 69 = IFERROR(ROUNDDOWN(WorkingHrs/day × 60 / CycleTime, 0), 0)
+    e.g., H69 = IFERROR(ROUNDDOWN(VLOOKUP(Fleet!$C$80, Equipment!$C$17:$V$20, Equipment!$M$1, FALSE) × 60 / H68, 0), 0)
+    For Year 1: ROUNDDOWN(14.4 × 60 / 11.71, 0) = 73 trips/day
+
+  Annual hauling capacity per dumper (bcm/yr/dumper):
+    Row 70 = TripsPerDay × MIN(BodyCap, CarryingCap) × WorkingDays
+    e.g., H70 = H69 × MIN($G$55:$G$56) × Assumptions_Dashboard!$D$28
+    For Year 1: 73 × MIN(18.9, 20.2) × 330 = 455,301 bcm/yr
+
+
+================================================================================
+7. PRODUCTIVITY - SM SHEET (Surface Miner Calculation)
+================================================================================
+
+  Surface Miner specifications:
+    Model: Wirtgen 2200SM
+    Drum Width (B3) = 2.2 m
+    Cutting Depth (B4) = 0.3 m (max per pass)
+    No. of Passes (B5) = 4 (configurable)
+    Total Cutting Depth = B4 × B5 = 1.2 m
+    
+    Cutting Speed (B11) = 12 m/min
+    Operating Width per pass = 2.2m - 0.15m overlap = 2.05m
+    
+    Productivity (B36):
+      = CuttingSpeed × DrumWidth × CuttingDepth × Passes × 60 × CoalDensity
+      = 928.8 tph (embedded value)
+
+
+================================================================================
+8. FLEET SHEET (Fleet Sizing Calculations)
+================================================================================
+
+The Fleet sheet calculates the required number of each equipment type per year.
+It reads volumes from Production Schedule, capacities from Productivity, and
+equipment specs from Equipment (which in turn pulls from Equipment Master Data).
+
+8.1 MATERIAL VOLUME CONVERSION
+──────────────────────────────
+  Coal/Ore bcm:
+    Fleet!G5 = 'Production Schedule'!E6 / Assumptions_Dashboard!$D$32
+    → Coal Mt from D&B / Coal Density (1.72 t/cum) = Coal volume in Mbcm
+
+  Waste IB Thin Parting (30% of total IB):
+    Fleet!G6 = 'Production Schedule'!E11 × Fleet!$F$6
+    → Total Waste × 0.3 (Thin Parting fraction) — F6 = 0.3
+
+  Waste IB Thick Parting (remainder):
+    Fleet!G7 = 'Production Schedule'!E11 - Fleet!G6
+    → Total Waste - Thin Parting = 70% of total waste
+
+  Waste OB:
+    Fleet!G8 = 'Production Schedule'!E10
+    → Overburden volume directly from Production Schedule
+
+  Waste Thick Parting (OB + IB Thick):
+    Fleet!G9 = G7 + G8 (sum of IB thick and OB)
+
+
+8.2 DRILL FLEET SIZING
+───────────────────────
+  Coal/Ore Drill (115mm):
+    Required = CoalVolume(bcm) / Productivity!$E$26 × 10^6
+    Fleet!G12 = G5 / Productivity!$E$26 × 10^6
+    Actual = ROUNDUP(Required, 0)
+    Fleet!G13 = ROUNDUP(G12, 0)
+
+  Waste IB Thin Parting Drill (160mm):
+    Required = ThinPartingVolume / Productivity!$F$26 × 10^6
+    Fleet!G16 = G6 / Productivity!$F$26 × 10^6
+    Actual = ROUNDUP(Required, 0)
+
+  Waste Thick Parting Drill (250mm):
+    Required = ThickPartingVolume / Productivity!$D$26 × 10^6
+    Fleet!G20 = G9 / Productivity!$D$26 × 10^6
+    Actual = ROUNDUP(Required, 0)
+
+
+8.3 SHOVEL/EXCAVATOR FLEET SIZING
+──────────────────────────────────
+  Top Soil (1.0 cum shovel):
+    Required = TopSoilVolume / Productivity!$F$49 × 10^6
+    Fleet!G26 = G25 × 10^6 / Productivity!$F$49
+
+  Thin Parting + Coal (4.6 cum shovel):
+    Material = Coal(bcm) + ThinParting + TopSoil
+    Fleet!G30 = G5 + G6 + G25
+    Required = G30 × 10^6 / Productivity!$G$49
+    Fleet!G31 = G30 × 10^6 / Productivity!$G$49
+    Actual = ROUNDUP(Required, 0)
+
+  Waste OB + Thick Parting (10 cum shovel):
+    Material = IB_Thick + OB
+    Fleet!G34 = G7 + G8
+    Required = G34 × 10^6 / Productivity!$E$49
+    Actual = ROUND(Required, 0)
+
+  Miscellaneous 01 (3.4 cum shovel):
+    Material from 'Production Schedule' rehandling (conditional)
+    Fleet!G39 = IF($A$38="Yes", 'Production Schedule'!E13, 0)
+    Required = G39 × 10^6 / Productivity!$H$49
+
+
+8.4 SURFACE MINER FLEET SIZING
+───────────────────────────────
+  SM Coal/Ore:
+    Required = 'Production Schedule'!{col}7 × 10^6 / Productivity!$D$35
+    Fleet!G50 = 'Production Schedule'!E7 × 10^6 / Productivity!$D$35
+    Actual = ROUNDUP(Required, 0)
+
+
+8.5 FRONT-END LOADER FLEET SIZING
+──────────────────────────────────
+  FEL for SM Coal (6.4 cum):
+    Material = 'Production Schedule'!{col}7 / Assumptions_Dashboard!$D$32
+    Fleet!G55 = 'Production Schedule'!E7 / Assumptions_Dashboard!$D$32
+    Required = G55 / Productivity!$K$49 × 10^6
+    Actual = ROUNDUP(Required, 0)
+
+  FEL Miscellaneous (1.7 cum):
+    Material = 'Production Schedule'!{col}12 / Assumptions_Dashboard!$D$32
+    Fleet!G60 = 'Production Schedule'!I12 / Assumptions_Dashboard!$D$32
+    Required = G60 × 10^6 / Productivity!$L$49
+    Actual = ROUNDUP(Required, 0)
+
+
+8.6 DUMPER/TRUCK FLEET SIZING
+─────────────────────────────
+  Topsoil (20t Tipper):
+    Volume = G25 (same as top soil from section 8.3)
+    Required = IFERROR(Volume × 10^6 / Productivity!{col}88, 0)
+    Fleet!G67 = IFERROR(G66 × 10^6 / Productivity!D88, 0)
+    Actual = ROUNDUP(Required × (1 + StandbyReserve%), 0)
+    Fleet!G68 = ROUNDUP(G67 × (1 + Assumptions_Dashboard!$D$113), 0)
+
+  Thin Parting + Rehandling (35t Tipper):
+    Volume = IF(RehandlingIncluded, ThinParting + Rehandling, ThinParting)
+    Fleet!G71 = IF($A$70="Yes", G6 + 'Production Schedule'!E13, G6)
+    Required = IFERROR(Volume × 10^6 / Productivity!{col}82, 0)
+    Actual = ROUNDUP(Required × (1 + StandbyReserve%), 0)
+
+  Waste OB + Thick Parting (100t Dumper):
+    Volume = IB_Thick + OB = G7 + G8
+    Required = IFERROR(Volume × 10^6 / Productivity!{col}94, 0)
+    Actual = ROUNDUP(Required × (1 + StandbyReserve%), 0)
+
+  Coal/Ore (40t Dumper):
+    Volume = 'Production Schedule'!{col}5 / Assumptions_Dashboard!$D$32
+    Fleet!G81 = 'Production Schedule'!E5 / Assumptions_Dashboard!$D$32
+    Required = IFERROR(Volume × 10^6 / Productivity!{col}70, 0)
+    Fleet!G82 = IFERROR(G81 × 10^6 / Productivity!D70, 0)
+    Actual = ROUNDUP(Required × (1 + StandbyReserve%), 0)
+    Fleet!G83 = ROUNDUP(G82 × (1 + Assumptions_Dashboard!$D$113), 0)
+
+
+8.7 DOZER, GRADER, CRANE FLEET SIZING
+──────────────────────────────────────
+  These use a RATIO-BASED formula proportional to coal production:
+
+  Formula Pattern:
+    Fleet per year = ROUNDUP(YearCoalProduction / MaxCoalProduction × PeakFleetCount, 0)
+
+  Example - Track Dozer/ 405 HP (Row 87, Peak=6):
+    Fleet!G87 = ROUNDUP('Production Schedule'!E$5 / MAX('Production Schedule'!$E$5:$AA$5) × Fleet!$E87, 0)
+    Where Fleet!$E87 = 6 (peak fleet count)
+
+  This same pattern applies to:
+    Row 87: Track Dozer/ 405 HP         (Peak: 6)
+    Row 88: Wheel Dozer                 (Peak: 0, not used)
+    Row 89: No. of Dozer Required       (Peak: 2)
+    Row 90: Ripper Dozer/ 450TPH        (Peak: 0, not used)
+    Row 91: No. of Dozer Required       (Peak: 2)
+    Row 92: Track Dozer/ 192 HP         (Peak: 0, not used)
+    Row 93: No. of Dozer Required       (Peak: 2)
+    Row 95-98: Graders (same ratio pattern)
+    Row 100+: Cranes and Auxiliary (same ratio pattern)
+
+
+8.8 FLEET SUMMARY (Lower rows compile total fleet per year)
+───────────────────────────────────────────────────────────
+  Total fleet counts are summed and used by downstream financial sheets
+  (Project CAPEX, Equipment Op Cost, Depreciation) for cost calculations.
+
+
+================================================================================
+9. LIST OF ALL EQUIPMENT AVAILABLE (from Equipment Master Data)
+================================================================================
+
+--- Drill Machine ---
+  Drill Machine/ 250mm diameter
+  Drill Machine/ 160mm diameter
+  Drill Machine/ 115mm diameter
+
+--- Excavator/Shovel ---
+  Electric Rope Shovel/ 38.3 cum
+  Electric Rope Shovel/ 26.7 cum
+  Electric Rope Shovel/ 22 cum
+  Electro Hydraulic Shovel/ 22 cum
+  Electric Rope Shovel/ 20 cum
+  Electric Rope Shovel/ 17 cum
+  Electric Rope Shovel/12 cum (CAT)
+  Diesel hydraulic shovel/ 10 cum
+  Diesel hydraulic shovel/ 10 cum (I)
+  Diesel hydraulic shovel/ 12 cum (Komatsu)
+  Diesel hydraulic shovel/ 12 cum (CAT)
+  Diesel hydraulic shovel/ 8.1 cum
+  Diesel hydraulic shovel/ 6.5 cum
+  Diesel hydraulic shovel/ 6.0 cum
+  Diesel hydraulic Shovel/ 4.6 cum
+  Diesel hydraulic Shovel/ 3.4 cum
+  Diesel hydraulic Shovel with Xcentric Ripper/ 3.4 cum
+  Diesel hydraulic Shovel/ 3.0 cum
+  Diesel hydraulic Shovel/ 1.0 cum
+
+--- Surface Miner ---
+  Surface Miner/ 2200 SM
+  Surface Miner/ 3800 SM
+
+--- Front End Loader ---
+  Front End Loader/ 10.0 cum
+  Front End Loader/ 10.7~12.3 cum
+  Front End Loader/ 8.6~10 cum
+  Front End Loader/ 6.4 cum
+  Front End Loader/ 2.5 cum
+  Front End Loader/ 1.7cum
+
+--- Dumper/Truck ---
+  Dumper/ 240t
+  Dumper/ 220t
+  Dumper/ 191t
+  Dumper/ 140t
+  Dumper/ 100t (CAT)
+  Dumper/ 100t (Komatsu)
+  Dumper/ 100t (BEML)
+  Dumper/ 60t
+  Dumper/ 50t
+  Dumper/ 40t
+  Tipper/ 35t
+  Tipper/ 20t
+  Truck/ 7-8t
+
+--- Dozer ---
+  Track Dozer/ 850 HP
+  Track Dozer/ 722 HP
+  Track Dozer/ 525 HP
+  Track Dozer/ 405 HP
+  Track Dozer/ 320 HP (BEML)
+  Track Dozer/ 320 HP (CAT)
+  Track Dozer/ 192 HP
+  Track Dozer/ 165 HP
+  Wheel Dozer
+  Ripper Dozer/ 450TPH
+  Ripper Dozer/600TPH
+
+--- Grader ---
+  Motor Grader/ 290 - 348 HP
+  Motor Grader/ 259 - 275 HP
+  Motor Grader/ 145 HP
+
+--- Crane ---
+  Crane/ 120t
+  Crane/ 100t
+  Crane/ 60t
+  Crane/ 40t
+  Crane/ 30t
+  Crane/ 20t
+  Crane/ 12t
+  Crane/ 8t
+
+--- Auxiliary ---
+  SMIPCC
+  Tipper Car
+  Spreader
+  BC-1
+  PDC-1
+  DC-1
+  BC-2
+  PDC-2
+  DC-2
+  IPCC - Transport Crawler
+  Water Sprinkler/ 28KL
+  Diesel Bowser/ 9KL
+  Explosive Van
+  Maintenance Van
+  Diesel Hydraulic backhoe/ 1.5cum (Komatsu)
+  Diesel Hydraulic backhoe/ 1.5cum (Hitachi)
+  Boom Truck
+  Heavy duty tow truck
+  Tipping Truck/ 8t
+  Fork lift/ 8t
+  Tyre handler/ 20t
+  Tyre handler/ 12t
+  Farm tractor
+  Fire Tender
+  Ambulance
+  Worker Transportation bus
+  School bus
+  Pickup Van
+  Cars
+  Pumps and fittings
+
+================================================================================
+END OF FORMULA REFERENCE DOCUMENT
+================================================================================

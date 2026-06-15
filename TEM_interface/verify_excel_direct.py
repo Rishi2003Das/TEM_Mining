@@ -12,7 +12,7 @@ def verify():
     client = pymongo.MongoClient(CONNECTION_STRING)
     db = client[DATABASE_NAME]
     
-    scenario_key = "Departmental_Yes_Commercial"
+    scenario_key = "Departmental_Yes_Commercial_SurfaceMiner"
     computed = db["computed_results"].find_one({"scenarioKey": scenario_key})
     if not computed:
         print(f"Computed results not found for scenario: {scenario_key}")
@@ -21,7 +21,7 @@ def verify():
     print(f"Loaded scenario from DB: {scenario_key}")
     
     print("Loading Excel workbook...")
-    wb = openpyxl.load_workbook("Option 3_15 Mtpa_rev1_smg opt2 quality.xlsx", data_only=True)
+    wb = openpyxl.load_workbook("/Users/rishidas/Documents/Internship_SRK/TEM_Mining/TEM_interface/IN1411_Radhikapur_Option 3_15 Mtpa_rev1_20260612.xlsx", data_only=True)
     
     # helper to get year values from Excel row
     def get_excel_row_values(sheet_name, row_idx):

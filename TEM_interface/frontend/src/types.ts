@@ -34,6 +34,8 @@ export interface ScenarioData {
       project_initial: YearlyValues;
       project_sustaining: YearlyValues;
       project_total: YearlyValues;
+      hemm_initial?: YearlyValues;
+      hemm_sustaining?: YearlyValues;
     };
     opex: {
       diesel: YearlyValues;
