@@ -58,7 +58,7 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
     
     // Group Header
     { isHeader: true, key: "", label: "Rehandling Cost", unit: "", type: "" },
-    { isHeader: false, key: "rehandling_cost", label: "Rehandling Cost", unit: "₹ Cr", type: "sum" },
+    { isHeader: false, key: "rehandling_cost", label: "Rehandling Cost", unit: "₹/ton", type: "sum" },
   ];
 
   // Retrieve LOM for each row from DB or calculate as fallback
@@ -175,9 +175,23 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
                 );
               }
 
-              const lomValue = getLOM(row.key, row.type);
-              const values = (ps as Record<string, any>)[row.key] || {};
               const isSubItem = row.label.startsWith("  -");
+              
+              let lomValue = getLOM(row.key, row.type);
+              let values = (ps as Record<string, any>)[row.key] || {};
+              
+              if (row.key === "rehandling_cost") {
+                const totalCoal = getLOM("coal_production", "sum");
+                lomValue = totalCoal > 0 ? (lomValue / totalCoal) * 10 : 0;
+                
+                const originalValues = values;
+                values = {};
+                Object.keys(originalValues).forEach((yr) => {
+                  const coalProd = ps.coal_production?.[yr] || 0;
+                  const rawCost = originalValues[yr] || 0;
+                  values[yr] = coalProd > 0 ? (rawCost / coalProd) * 10 : 0;
+                });
+              }
               
               return (
                 <tr key={row.key} style={isSubItem ? { fontStyle: "italic", opacity: 0.85 } : undefined}>

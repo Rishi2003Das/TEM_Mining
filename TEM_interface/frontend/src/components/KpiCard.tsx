@@ -27,7 +27,9 @@ export function KpiCard({
         </div>
       ) : (
         <div className="kpi-card__value">
-          {formatCrore(value)}
+          {unit.includes("/ton") || unit.includes("/t")
+            ? value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+            : formatCrore(value)}
           <span className="kpi-card__unit">{unit}</span>
         </div>
       )}

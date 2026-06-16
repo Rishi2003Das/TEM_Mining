@@ -4,6 +4,7 @@ import { formatCroreExact } from "../types";
 interface BreakdownTableProps {
   data: ChartDataItem[];
   title: string;
+  unit?: string;
   icon?: string;
   iconBg?: string;
   iconColor?: string;
@@ -12,11 +13,13 @@ interface BreakdownTableProps {
 export function BreakdownTable({
   data,
   title,
+  unit = "₹ Cr",
   icon = "📋",
   iconBg = "rgba(99, 102, 241, 0.15)",
   iconColor = "#6366f1",
 }: BreakdownTableProps) {
   const total = data.reduce((s, d) => s + d.value, 0);
+  const isRsPerTon = unit.includes("/ton") || unit.includes("/t");
 
   return (
     <div className="glass-card animate-in">
@@ -33,7 +36,7 @@ export function BreakdownTable({
           <thead>
             <tr>
               <th>Component</th>
-              <th style={{ textAlign: "right" }}>LOM Total (₹ Cr)</th>
+              <th style={{ textAlign: "right" }}>Value ({unit})</th>
               <th style={{ textAlign: "right" }}>Share (%)</th>
             </tr>
           </thead>
@@ -54,13 +57,17 @@ export function BreakdownTable({
                   />
                   {row.name}
                 </td>
-                <td className="value">{formatCroreExact(row.value)}</td>
+                <td className="value">
+                  {isRsPerTon ? row.value.toFixed(2) : formatCroreExact(row.value)}
+                </td>
                 <td className="percentage">{row.percentage?.toFixed(1)}%</td>
               </tr>
             ))}
             <tr className="total-row">
               <td>Total</td>
-              <td className="value">{formatCroreExact(total)}</td>
+              <td className="value">
+                {isRsPerTon ? total.toFixed(2) : formatCroreExact(total)}
+              </td>
               <td className="percentage">100.0%</td>
             </tr>
           </tbody>

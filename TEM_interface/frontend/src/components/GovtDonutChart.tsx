@@ -12,11 +12,13 @@ import { formatCroreExact } from "../types";
 interface GovtDonutChartProps {
   data: ChartDataItem[];
   title?: string;
+  unit?: string;
 }
 
-function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartDataItem }> }) {
+function CustomTooltip({ active, payload, unit }: { active?: boolean; payload?: Array<{ payload: ChartDataItem }>; unit?: string }) {
   if (active && payload && payload.length) {
     const d = payload[0].payload;
+    const isRsPerTon = unit?.includes("/ton") || unit?.includes("/t");
     return (
       <div
         style={{
@@ -32,7 +34,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
           {d.name}
         </div>
         <div style={{ fontSize: "0.85rem", color: "#f1f5f9" }}>
-          ₹ {formatCroreExact(d.value)} Cr
+          {isRsPerTon ? `₹ ${d.value.toFixed(2)} /ton` : `₹ ${formatCroreExact(d.value)} Cr`}
         </div>
         <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
           {d.percentage}% of total
@@ -56,8 +58,9 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   );
 }
 
-export function GovtDonutChart({ data, title = "Government Fees & Taxes" }: GovtDonutChartProps) {
+export function GovtDonutChart({ data, title = "Government Fees & Taxes", unit = "₹ Cr" }: GovtDonutChartProps) {
   const total = data.reduce((s, d) => s + d.value, 0);
+  const isRsPerTon = unit.includes("/ton") || unit.includes("/t");
 
   return (
     <div className="glass-card chart-container">
@@ -67,7 +70,7 @@ export function GovtDonutChart({ data, title = "Government Fees & Taxes" }: Govt
           {title}
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
-          Total: ₹ {formatCroreExact(total)} Cr
+          Total: {isRsPerTon ? `₹ ${total.toFixed(2)} /ton` : `₹ ${formatCroreExact(total)} Cr`}
         </div>
       </div>
       <ResponsiveContainer width="100%" height={300}>
@@ -89,7 +92,7 @@ export function GovtDonutChart({ data, title = "Government Fees & Taxes" }: Govt
               <Cell key={index} fill={entry.color} />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip unit={unit} />} />
           <Legend content={<CustomLegend />} />
         </PieChart>
       </ResponsiveContainer>

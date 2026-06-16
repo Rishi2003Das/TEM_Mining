@@ -32,14 +32,17 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
         <div style={{ fontWeight: 600, marginBottom: 8, color: "#f1f5f9", fontSize: "0.85rem" }}>
           {label}
         </div>
-        {payload.map((p, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 3, fontSize: "0.8rem" }}>
-            <span style={{ color: p.color }}>{p.name}</span>
-            <span style={{ color: "#f1f5f9", fontVariantNumeric: "tabular-nums" }}>
-              ₹ {p.value.toFixed(1)} Cr
-            </span>
-          </div>
-        ))}
+        {payload.map((p, i) => {
+          const isCapex = p.name.includes("CAPEX");
+          return (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 3, fontSize: "0.8rem" }}>
+              <span style={{ color: p.color }}>{p.name}</span>
+              <span style={{ color: "#f1f5f9", fontVariantNumeric: "tabular-nums" }}>
+                {isCapex ? `₹ ${p.value.toFixed(1)} Cr` : `₹ ${p.value.toFixed(1)} /ton`}
+              </span>
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -55,7 +58,7 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
           Year-by-Year Cost Profile
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>
-          All values in INR Crore
+          CAPEX: INR Cr | OPEX & Fees: ₹/ton
         </div>
       </div>
       <ResponsiveContainer width="100%" height={350}>

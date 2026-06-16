@@ -177,15 +177,19 @@ export function useScenarioData() {
     ];
 
     const subtotal = sumYearly(opex.subtotal);
+    const lomCoalProd = scenario.results.production_schedule?.coal_production
+      ? sumYearly(scenario.results.production_schedule.coal_production)
+      : 0;
 
     return items
       .map((item, i) => {
-        const value = sumYearly(opex[item.key]);
+        const rawValue = sumYearly(opex[item.key]);
+        const value = lomCoalProd > 0 ? (rawValue / lomCoalProd) * 10 : 0;
         return {
           name: item.name,
           value: Math.round(value * 100) / 100,
           color: PIE_COLORS[i % PIE_COLORS.length],
-          percentage: subtotal > 0 ? Math.round((value / subtotal) * 1000) / 10 : 0,
+          percentage: subtotal > 0 ? Math.round((rawValue / subtotal) * 1000) / 10 : 0,
         };
       })
       .filter((d) => d.value > 0)
@@ -210,15 +214,19 @@ export function useScenarioData() {
     ];
 
     const total = sumYearly(govt.total_fees_with_mc_bank);
+    const lomCoalProd = scenario.results.production_schedule?.coal_production
+      ? sumYearly(scenario.results.production_schedule.coal_production)
+      : 0;
 
     return items
       .map((item, i) => {
-        const value = sumYearly(govt[item.key]);
+        const rawValue = sumYearly(govt[item.key]);
+        const value = lomCoalProd > 0 ? (rawValue / lomCoalProd) * 10 : 0;
         return {
           name: item.name,
           value: Math.round(value * 100) / 100,
           color: PIE_COLORS[i % PIE_COLORS.length],
-          percentage: total > 0 ? Math.round((value / total) * 1000) / 10 : 0,
+          percentage: total > 0 ? Math.round((rawValue / total) * 1000) / 10 : 0,
         };
       })
       .filter((d) => d.value > 0);
@@ -238,17 +246,22 @@ export function useScenarioData() {
   const yearlyChartData: YearlyChartData[] = useMemo(() => {
     if (!scenario) return [];
 
-    return years.map((yr) => ({
-      year: `Yr ${yr}`,
-      ownerCapex: Math.round((scenario.results.capex.owner_total[yr] || 0) * 100) / 100,
-      ownerOpex: Math.round((scenario.results.opex.subtotal[yr] || 0) * 100) / 100,
-      govtFees: Math.round(
-        (scenario.results.government.total_fees_with_mc_bank[yr] || 0) * 100
-      ) / 100,
-      mdoContractor: Math.round(
-        (scenario.results.opex.mdo_contractor[yr] || 0) * 100
-      ) / 100,
-    }));
+    return years.map((yr) => {
+      const coalProd = scenario.results.production_schedule?.coal_production?.[yr] || 0;
+      
+      const ownerCapexRaw = scenario.results.capex.owner_total[yr] || 0;
+      const ownerOpexRaw = scenario.results.opex.subtotal[yr] || 0;
+      const govtFeesRaw = scenario.results.government.total_fees_with_mc_bank[yr] || 0;
+      const mdoContractorRaw = scenario.results.opex.mdo_contractor[yr] || 0;
+
+      return {
+        year: `Yr ${yr}`,
+        ownerCapex: Math.round(ownerCapexRaw * 100) / 100,
+        ownerOpex: coalProd > 0 ? Math.round((ownerOpexRaw / coalProd) * 10 * 100) / 100 : 0,
+        govtFees: coalProd > 0 ? Math.round((govtFeesRaw / coalProd) * 10 * 100) / 100 : 0,
+        mdoContractor: coalProd > 0 ? Math.round((mdoContractorRaw / coalProd) * 10 * 100) / 100 : 0,
+      };
+    });
   }, [scenario, years]);
 
   // Summary KPIs
@@ -259,14 +272,18 @@ export function useScenarioData() {
     const opex = scenario.results.opex;
     const govt = scenario.results.government;
 
+    const lomCoalProd = scenario.results.production_schedule?.coal_production
+      ? sumYearly(scenario.results.production_schedule.coal_production)
+      : 0;
+
     return {
       totalOwnerCapex: sumYearly(capex.owner_total),
       totalMdoCapex: sumYearly(capex.mdo_total),
       totalProjectCapex: sumYearly(capex.project_total),
-      totalOwnerOpex: sumYearly(opex.subtotal),
-      totalMdoContractor: sumYearly(opex.mdo_contractor),
-      totalGovtFees: sumYearly(govt.total_fees_with_mc_bank),
-      totalProjectOpex: sumYearly(scenario.results.project_grand_total_opex),
+      totalOwnerOpex: lomCoalProd > 0 ? (sumYearly(opex.subtotal) / lomCoalProd) * 10 : 0,
+      totalMdoContractor: lomCoalProd > 0 ? (sumYearly(opex.mdo_contractor) / lomCoalProd) * 10 : 0,
+      totalGovtFees: lomCoalProd > 0 ? (sumYearly(govt.total_fees_with_mc_bank) / lomCoalProd) * 10 : 0,
+      totalProjectOpex: lomCoalProd > 0 ? (sumYearly(scenario.results.project_grand_total_opex) / lomCoalProd) * 10 : 0,
     };
   }, [scenario]);
 

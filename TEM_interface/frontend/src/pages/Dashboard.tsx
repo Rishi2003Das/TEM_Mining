@@ -69,18 +69,21 @@ export function Dashboard() {
         <KpiCard
           label={isMDO ? "MDO CAPEX (LOM)" : "Owner OPEX (LOM)"}
           value={isMDO ? kpis?.totalMdoCapex || 0 : kpis?.totalOwnerOpex || 0}
+          unit={isMDO ? "INR Cr" : "₹/ton"}
           icon={isMDO ? "🚜" : "⚡"}
           variant="blue"
         />
         <KpiCard
           label="Government Fees (LOM)"
           value={kpis?.totalGovtFees || 0}
+          unit="₹/ton"
           icon="🏛️"
           variant="amber"
         />
         <KpiCard
           label="Project OPEX (LOM)"
           value={kpis?.totalProjectOpex || 0}
+          unit="₹/ton"
           icon="📊"
           variant="emerald"
         />
@@ -107,9 +110,10 @@ export function Dashboard() {
           data={ownerCapexPieData}
           title={isMDO ? "Owner CAPEX (MDO Mode)" : "Owner CAPEX Breakdown"}
         />
-        <GovtDonutChart data={govtDonutData} />
+        <GovtDonutChart data={govtDonutData} unit="₹/ton" />
         <OpexBarChart
           data={ownerOpexBarData}
+          unit="₹/ton"
           title={isMDO ? "Owner OPEX (excl. MDO Contractor)" : "Owner OPEX Breakdown (LOM)"}
         />
         <YearlyAreaChart
@@ -138,6 +142,7 @@ export function Dashboard() {
         <BreakdownTable
           data={ownerCapexPieData}
           title="Owner CAPEX — Component Breakdown"
+          unit="₹ Cr"
           icon="🏗️"
           iconBg="rgba(99, 102, 241, 0.15)"
           iconColor="#6366f1"
@@ -145,6 +150,7 @@ export function Dashboard() {
         <BreakdownTable
           data={ownerOpexBarData}
           title="Owner OPEX — Component Breakdown"
+          unit="₹/ton"
           icon="⚡"
           iconBg="rgba(59, 130, 246, 0.15)"
           iconColor="#3b82f6"
@@ -152,6 +158,7 @@ export function Dashboard() {
         <BreakdownTable
           data={govtDonutData}
           title="Government Fees & Taxes Breakdown"
+          unit="₹/ton"
           icon="🏛️"
           iconBg="rgba(245, 158, 11, 0.15)"
           iconColor="#f59e0b"
