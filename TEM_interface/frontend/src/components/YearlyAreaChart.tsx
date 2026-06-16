@@ -89,9 +89,19 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
             tickLine={false}
           />
           <YAxis
+            yAxisId="left"
             tick={{ fontSize: 10, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
+            width={35}
+          />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            tick={{ fontSize: 10, fill: "#64748b" }}
+            axisLine={false}
+            tickLine={false}
+            width={40}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend
@@ -99,6 +109,7 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
           />
           <Area
             type="monotone"
+            yAxisId="left"
             dataKey="ownerCapex"
             name="Owner CAPEX"
             stroke="#6366f1"
@@ -109,6 +120,7 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
           />
           <Area
             type="monotone"
+            yAxisId="right"
             dataKey="ownerOpex"
             name="Owner OPEX"
             stroke="#3b82f6"
@@ -119,6 +131,7 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
           />
           <Area
             type="monotone"
+            yAxisId="right"
             dataKey="govtFees"
             name="Govt Fees"
             stroke="#f59e0b"
@@ -130,6 +143,7 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
           {showMdoContractor && (
             <Area
               type="monotone"
+              yAxisId="right"
               dataKey="mdoContractor"
               name="MDO Contractor"
               stroke="#f43f5e"
