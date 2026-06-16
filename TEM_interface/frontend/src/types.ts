@@ -4,7 +4,6 @@ export interface SwitchState {
   miningMode: "Departmental" | "MDO";
   preTaxPreFinance: "Yes" | "No";
   coalPriceType: "Commercial" | "NCI";
-  // Future switches (UI-only for now)
   coalMiningMachinery: "Surface Miner" | "Shovel-Dumper";
   priceCorrelationFactor: number;
 }
