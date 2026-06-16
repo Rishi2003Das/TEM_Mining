@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import { Dashboard } from "./pages/Dashboard";
 import { AdminPage } from "./pages/AdminPage";
+import logoImg from "./assets/Logo.jpeg";
 
 function App() {
   return (
@@ -9,7 +10,7 @@ function App() {
         {/* ── Header ─────────────────────────────────────── */}
         <header className="app-header">
           <div className="app-header__logo">
-            <div className="app-header__logo-icon">T</div>
+            <img src={logoImg} alt="TEM Logo" className="app-header__logo-icon" style={{ objectFit: "cover", padding: 0 }} />
             <div>
               <div className="app-header__title">Techno-Economic model</div>
               <div className="app-header__subtitle">
