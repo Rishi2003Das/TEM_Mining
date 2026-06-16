@@ -10,13 +10,7 @@ function App() {
         {/* ── Header ─────────────────────────────────────── */}
         <header className="app-header">
           <div className="app-header__logo">
-            <img src={logoImg} alt="TEM Logo" className="app-header__logo-icon" style={{ objectFit: "cover", padding: 0 }} />
-            <div>
-              <div className="app-header__title">Techno-Economic model</div>
-              <div className="app-header__subtitle">
-                Techno-Economic Model — Made by SRK Consulting
-              </div>
-            </div>
+            <img src={logoImg} alt="TEM Logo" style={{ height: "42px", objectFit: "contain", borderRadius: "6px" }} />
           </div>
           <nav className="app-header__nav">
             <NavLink
