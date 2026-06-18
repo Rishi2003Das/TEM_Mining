@@ -7,6 +7,7 @@ import { GovtDonutChart } from "../components/GovtDonutChart";
 import { YearlyAreaChart } from "../components/YearlyAreaChart";
 import { BreakdownTable } from "../components/BreakdownTable";
 import { ProductionScheduleTable } from "../components/ProductionScheduleTable";
+import { API_BASE } from "../types";
 
 export function Dashboard() {
   const {
@@ -20,6 +21,7 @@ export function Dashboard() {
     yearlyChartData,
     kpis,
     scenario,
+    refetch,
   } = useScenarioData();
 
   if (loading) {
@@ -32,16 +34,43 @@ export function Dashboard() {
   }
 
   if (error) {
+    const isLocalhost = API_BASE.includes("localhost");
     return (
       <div className="loading-state">
         <div style={{ fontSize: "3rem" }}>⚠️</div>
-        <div className="loading-text" style={{ color: "var(--accent-rose)" }}>
+        <div className="loading-text" style={{ color: "var(--accent-rose)", fontWeight: 700, fontSize: "1.2rem" }}>
           {error}
         </div>
-        <div className="loading-text">
-          Make sure the API server is running on{" "}
-          <code style={{ color: "var(--accent-primary)" }}>http://localhost:4000</code>
+        <div className="loading-text" style={{ marginTop: "0.5rem" }}>
+          Attempting to connect to:{" "}
+          <code style={{ color: "var(--accent-primary)", background: "rgba(99,102,241,0.12)", padding: "2px 8px", borderRadius: "4px" }}>
+            {API_BASE}
+          </code>
         </div>
+        {isLocalhost ? (
+          <div className="loading-text" style={{ marginTop: "1rem", lineHeight: 1.7 }}>
+            <strong>To start the local API server:</strong>
+            <br />
+            <code style={{ color: "var(--accent-primary)", display: "block", marginTop: "0.5rem", background: "rgba(99,102,241,0.08)", padding: "8px 14px", borderRadius: "6px", fontSize: "0.85rem" }}>
+              cd TEM_interface/server && node server.js
+            </code>
+          </div>
+        ) : (
+          <div className="loading-text" style={{ marginTop: "1rem", lineHeight: 1.7 }}>
+            <strong>Deployed backend not configured.</strong>
+            <br />
+            Set <code style={{ color: "var(--accent-primary)" }}>VITE_API_BASE</code> in your Vercel/Render environment variables
+            to point to your deployed backend URL (e.g. <code style={{ color: "var(--accent-primary)" }}>https://your-api.onrender.com</code>).
+            <br />
+            See <strong>DEPLOYMENT.md</strong> for full instructions.
+          </div>
+        )}
+        <button
+          onClick={() => refetch()}
+          style={{ marginTop: "1.5rem", padding: "10px 28px", borderRadius: "8px", border: "none", background: "var(--accent-primary)", color: "#fff", fontWeight: 600, fontSize: "1rem", cursor: "pointer" }}
+        >
+          🔄 Retry Connection
+        </button>
       </div>
     );
   }
