@@ -16,6 +16,7 @@ export function Dashboard() {
     loading,
     error,
     ownerCapexPieData,
+    mdoCapexPieData,
     ownerOpexBarData,
     govtDonutData,
     yearlyChartData,
@@ -89,40 +90,93 @@ export function Dashboard() {
 
       {/* KPI Summary Cards */}
       <div className="kpi-grid">
-        <KpiCard
-          label="Owner CAPEX (LOM)"
-          value={kpis?.totalOwnerCapex || 0}
-          icon="🏗️"
-          variant="indigo"
-        />
-        <KpiCard
-          label={isMDO ? "MDO CAPEX (LOM)" : "Owner OPEX (LOM)"}
-          value={isMDO ? kpis?.totalMdoCapex || 0 : kpis?.totalOwnerOpex || 0}
-          unit={isMDO ? "INR Cr" : "₹/ton"}
-          icon={isMDO ? "🚜" : "⚡"}
-          variant="blue"
-        />
-        <KpiCard
-          label="Government Fees (LOM)"
-          value={kpis?.totalGovtFees || 0}
-          unit="₹/ton"
-          icon="🏛️"
-          variant="amber"
-        />
-        <KpiCard
-          label="Project OPEX (LOM)"
-          value={kpis?.totalProjectOpex || 0}
-          unit="₹/ton"
-          icon="📊"
-          variant="emerald"
-        />
-        <KpiCard
-          label="IRR (Equity)"
-          value={0}
-          icon="📈"
-          variant="rose"
-          comingSoon
-        />
+        {isMDO ? (
+          <>
+            <KpiCard
+              label="Owner CAPEX (LOM)"
+              value={kpis?.totalOwnerCapex || 0}
+              icon="🏗️"
+              variant="indigo"
+            />
+            <KpiCard
+              label="MDO CAPEX (LOM)"
+              value={kpis?.totalMdoCapex || 0}
+              icon="🚜"
+              variant="blue"
+            />
+            <KpiCard
+              label="Project CAPEX (LOM)"
+              value={kpis?.totalProjectCapex || 0}
+              icon="🏢"
+              variant="violet"
+            />
+            <KpiCard
+              label="Owner OPEX (LOM)"
+              value={kpis?.totalOwnerOpex || 0}
+              unit="₹/ton"
+              icon="⚡"
+              variant="rose"
+            />
+            <KpiCard
+              label="MDO OPEX (LOM)"
+              value={kpis?.totalMdoContractor || 0}
+              unit="₹/ton"
+              icon="⛏️"
+              variant="cyan"
+            />
+            <KpiCard
+              label="Government Fees (LOM)"
+              value={kpis?.totalGovtFees || 0}
+              unit="₹/ton"
+              icon="🏛️"
+              variant="amber"
+            />
+            <KpiCard
+              label="Project OPEX (LOM)"
+              value={kpis?.totalProjectOpex || 0}
+              unit="₹/ton"
+              icon="📊"
+              variant="emerald"
+            />
+          </>
+        ) : (
+          <>
+            <KpiCard
+              label="Owner CAPEX (LOM)"
+              value={kpis?.totalOwnerCapex || 0}
+              icon="🏗️"
+              variant="indigo"
+            />
+            <KpiCard
+              label="Owner OPEX (LOM)"
+              value={kpis?.totalOwnerOpex || 0}
+              unit="₹/ton"
+              icon="⚡"
+              variant="blue"
+            />
+            <KpiCard
+              label="Government Fees (LOM)"
+              value={kpis?.totalGovtFees || 0}
+              unit="₹/ton"
+              icon="🏛️"
+              variant="amber"
+            />
+            <KpiCard
+              label="Project OPEX (LOM)"
+              value={kpis?.totalProjectOpex || 0}
+              unit="₹/ton"
+              icon="📊"
+              variant="emerald"
+            />
+            <KpiCard
+              label="IRR (Equity)"
+              value={0}
+              icon="📈"
+              variant="rose"
+              comingSoon
+            />
+          </>
+        )}
       </div>
 
       {/* Charts - 2x2 Grid */}
@@ -139,16 +193,24 @@ export function Dashboard() {
           data={ownerCapexPieData}
           title={isMDO ? "Owner CAPEX (MDO Mode)" : "Owner CAPEX Breakdown"}
         />
+        {isMDO && (
+          <CapexPieChart
+            data={mdoCapexPieData}
+            title="MDO CAPEX Breakdown"
+          />
+        )}
         <GovtDonutChart data={govtDonutData} unit="₹/ton" />
         <OpexBarChart
           data={ownerOpexBarData}
           unit="₹/ton"
           title={isMDO ? "Owner OPEX (excl. MDO Contractor)" : "Owner OPEX Breakdown (LOM)"}
         />
-        <YearlyAreaChart
-          data={yearlyChartData}
-          showMdoContractor={isMDO}
-        />
+        <div style={isMDO ? { gridColumn: "span 2" } : undefined}>
+          <YearlyAreaChart
+            data={yearlyChartData}
+            showMdoContractor={isMDO}
+          />
+        </div>
       </div>
 
       {/* Production Schedule Section */}
@@ -176,6 +238,16 @@ export function Dashboard() {
           iconBg="rgba(99, 102, 241, 0.15)"
           iconColor="#6366f1"
         />
+        {isMDO && (
+          <BreakdownTable
+            data={mdoCapexPieData}
+            title="MDO CAPEX — Component Breakdown"
+            unit="₹ Cr"
+            icon="🚜"
+            iconBg="rgba(59, 130, 246, 0.15)"
+            iconColor="#3b82f6"
+          />
+        )}
         <BreakdownTable
           data={ownerOpexBarData}
           title="Owner OPEX — Component Breakdown"

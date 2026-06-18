@@ -5,7 +5,7 @@ interface KpiCardProps {
   value: number;
   unit?: string;
   icon: string;
-  variant: "indigo" | "blue" | "amber" | "emerald" | "rose";
+  variant: "indigo" | "blue" | "amber" | "emerald" | "rose" | "violet" | "cyan";
   comingSoon?: boolean;
 }
 

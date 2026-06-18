@@ -150,6 +150,52 @@ export function useScenarioData() {
       }));
   }, [scenario, capexBreakdown, switches.miningMode]);
 
+  // MDO CAPEX pie chart data
+  const mdoCapexPieData: ChartDataItem[] = useMemo(() => {
+    if (!scenario || !capexBreakdown || switches.miningMode !== "MDO") return [];
+
+    const dynamicHemmInitial = scenario.results.capex.hemm_initial
+      ? sumYearly(scenario.results.capex.hemm_initial)
+      : capexBreakdown.hemm_initial;
+    const dynamicHemmSustaining = scenario.results.capex.hemm_sustaining
+      ? sumYearly(scenario.results.capex.hemm_sustaining)
+      : capexBreakdown.hemm_replacement;
+
+    const components: { name: string; value: number }[] = [
+      {
+        name: "HEMM (Initial + Replacement)",
+        value: dynamicHemmInitial + dynamicHemmSustaining,
+      },
+      {
+        name: "Workshop and Store",
+        value: capexBreakdown.breakups["Workshop and Store (E&M)"] || 0,
+      },
+      {
+        name: "Mine Dewatering System",
+        value: capexBreakdown.breakups["Mine Dewatering System"] || 0,
+      },
+    ];
+
+    const capexData = scenario.results.capex;
+    const totalMdo = sumYearly(capexData.mdo_total);
+    const itemSum = components.reduce((s, c) => s + c.value, 0);
+    const contingency = totalMdo - itemSum;
+    if (contingency > 0) {
+      components.push({ name: "Contingency", value: contingency });
+    }
+
+    const total = components.reduce((s, c) => s + c.value, 0);
+
+    return components
+      .filter((c) => c.value > 0)
+      .map((c, i) => ({
+        name: c.name,
+        value: Math.round(c.value * 100) / 100,
+        color: PIE_COLORS[(i + 3) % PIE_COLORS.length],
+        percentage: Math.round((c.value / total) * 1000) / 10,
+      }));
+  }, [scenario, capexBreakdown, switches.miningMode]);
+
   // Owner OPEX bar chart data
   const ownerOpexBarData: ChartDataItem[] = useMemo(() => {
     if (!scenario) return [];
@@ -296,6 +342,7 @@ export function useScenarioData() {
     error,
     scenarioKey,
     ownerCapexPieData,
+    mdoCapexPieData,
     ownerOpexBarData,
     govtDonutData,
     yearlyChartData,
