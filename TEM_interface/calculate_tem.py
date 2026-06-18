@@ -2,6 +2,7 @@ import datetime
 import os
 import pymongo
 import math
+import numpy as np
 
 # MongoDB connection configuration
 CONNECTION_STRING = os.environ.get("MONGODB_URI", "mongodb+srv://rishikakalidas:KNris$0068@tem.khdmanp.mongodb.net/?appName=tem")
@@ -185,6 +186,339 @@ def parse_rate(val):
         return float(val_str)
     except ValueError:
         return val
+
+# ─── Baseline Depreciation Data (from Depreciation-Owner sheet, L6="Yes" basis) ───
+# These are the baseline yearly total depreciation values extracted from the Excel.
+# They correspond to the Owner's total straight-line depreciation per year.
+BASELINE_DEPR_YEARLY = {
+    "-4": 14.6319733478, "-3": 32.0367316507, "-2": 66.5938347947, "-1": 97.2148069278,
+    "1": 135.1487287506, "2": 144.5920710324, "3": 161.4528922169, "4": 207.496981372,
+    "5": 223.8044081278, "6": 261.7286503476, "7": 264.3108138283, "8": 284.8338056824,
+    "9": 299.1607208293, "10": 296.4517788107, "11": 296.7962380669, "12": 275.8988831247,
+    "13": 270.8049986599, "14": 282.7877629392, "15": 269.7591803366, "16": 278.3518950153,
+    "17": 261.8667600838, "18": 257.9921981816, "19": 250.9492973568,
+}
+
+# Baseline yearly CAPEX from Depreciation-Owner!Row35 (= Owner CAPEX excluding IDC)
+BASELINE_CAPEX_DEP_YEARLY = {
+    "-4": 155.994299, "-3": 343.4676494667, "-2": 677.7138993111, "-1": 542.1541493111,
+    "1": 512.0366951786, "2": 185.813007191, "3": 214.0286328769, "4": 587.7657836193,
+    "5": 327.9920244265, "6": 525.4418596552, "7": 328.5690080552, "8": 400.1813033937,
+    "9": 352.3020144835, "10": 119.7748515037, "11": 142.2324651573, "12": 30.54268302,
+    "13": 96.36632, "14": 269.36310022, "15": 56.7089213866, "16": 245.0386036055,
+    "17": 32.3038003386, "18": 107.3549870055, "19": 180.57944,
+}
+
+# Salvage value (only in final year 19)
+BASELINE_SALVAGE = {"19": 1499.060087}
+
+# Coal purchase cost per year (from Coal Price!Row10)
+COAL_PURCHASE_YEARLY = {
+    "-4": 0.0, "-3": 0.0, "-2": 0.0, "-1": 0.0,
+    "1": 59.5, "2": 159.5, "3": 330.0, "4": 286.0,
+    "5": 462.0, "6": 242.0, "7": 330.0, "8": 286.0,
+    "9": 308.0, "10": 220.0, "11": 176.0, "12": 396.0,
+    "13": 180.0, "14": 190.0, "15": 0.0, "16": 0.0,
+    "17": 0.0, "18": 0.0, "19": 0.0,
+}
+
+# ─── Financial Constants ───
+CORPORATE_TAX_RATE = 0.2517       # Assumptions_Dashboard!D128
+CSR_RATE = 0.02                    # Assumptions_Dashboard!D132
+OWNER_DEBT_PCT = 0.30              # Assumptions_Dashboard!D144 when L6="No"
+MDO_DEBT_PCT = 0.70                # Assumptions_Dashboard!D148 when L6="No"
+INTEREST_RATE = 0.10               # Assumptions_Dashboard!D140
+MORATORIUM_YEARS = 5               # Assumptions_Dashboard!D142
+PAYBACK_YEARS = 7                  # Assumptions_Dashboard!D143
+DISCOUNT_RATE = 0.10               # CF!E19
+
+
+def calculate_borrowings(capex_initial_yearly, capex_sustaining_yearly, debt_pct, year_headers):
+    """Calculate debt schedule, repayments, and interest costs.
+    
+    Follows Borrowings-Owner sheet logic:
+    - Non-funded capex borrowing with moratorium and equal repayment
+    - Interest = (Opening - Repayment) × rate + New × rate/2 + Repayment × rate/2
+    
+    Returns dict with yearly: total_interest, total_borrowings, total_repayments,
+                              opening_balance, closing_balance
+    """
+    if debt_pct <= 0:
+        zeros = {str(yr): 0.0 for yr in year_headers}
+        return {
+            "total_interest": dict(zeros), "total_borrowings": dict(zeros),
+            "total_repayments": dict(zeros), "opening_balance": dict(zeros),
+            "closing_balance": dict(zeros),
+        }
+    
+    # Build yearly new debt schedule
+    new_debt = {}
+    for yr in year_headers:
+        yr_str = str(yr)
+        capex = capex_initial_yearly.get(yr_str, 0.0) + capex_sustaining_yearly.get(yr_str, 0.0)
+        new_debt[yr_str] = max(capex * debt_pct, 0.0)
+    
+    # Build repayment schedule: each year's borrowing is repaid in PAYBACK_YEARS equal
+    # installments starting after MORATORIUM_YEARS from the borrowing year.
+    repayment_schedule = {str(yr): 0.0 for yr in year_headers}
+    for borrow_yr in year_headers:
+        borrow_yr_str = str(borrow_yr)
+        borrowed = new_debt[borrow_yr_str]
+        if borrowed <= 0:
+            continue
+        annual_repayment = borrowed / PAYBACK_YEARS
+        # Find the index of borrow_yr in year_headers
+        borrow_idx = year_headers.index(borrow_yr)
+        # Repayments start MORATORIUM_YEARS after borrowing
+        repay_start_idx = borrow_idx + MORATORIUM_YEARS + 1
+        for r_offset in range(PAYBACK_YEARS):
+            repay_idx = repay_start_idx + r_offset
+            if repay_idx < len(year_headers):
+                repay_yr_str = str(year_headers[repay_idx])
+                repayment_schedule[repay_yr_str] += annual_repayment
+    
+    # Calculate interest and balances year by year
+    opening = {str(yr): 0.0 for yr in year_headers}
+    closing = {str(yr): 0.0 for yr in year_headers}
+    interest = {str(yr): 0.0 for yr in year_headers}
+    
+    prev_closing = 0.0
+    for yr in year_headers:
+        yr_str = str(yr)
+        op = prev_closing
+        borrow = new_debt[yr_str]
+        repay = min(repayment_schedule[yr_str], op + borrow)  # Can't repay more than balance
+        
+        # Interest: on (opening - repayment) + half-year on new borrowing + half-year on repayment
+        int_cost = (op - repay) * INTEREST_RATE + borrow * INTEREST_RATE * 0.5 + repay * INTEREST_RATE * 0.5
+        int_cost = max(int_cost, 0.0)
+        
+        cl = op + borrow - repay  # Interest is paid (not added to balance per Excel logic)
+        
+        opening[yr_str] = round(op, 6)
+        closing[yr_str] = round(cl, 6)
+        interest[yr_str] = round(int_cost, 6)
+        prev_closing = cl
+    
+    return {
+        "total_interest": interest,
+        "total_borrowings": new_debt,
+        "total_repayments": repayment_schedule,
+        "opening_balance": opening,
+        "closing_balance": closing,
+    }
+
+
+def calculate_pnl_tax_cf(year_headers, revenue_yearly, opex_yearly, coal_purchase_yearly,
+                         capex_dep_yearly, depr_yearly, salvage_yearly,
+                         interest_yearly, borrowings_yearly, repayments_yearly,
+                         pre_tax_pre_finance):
+    """Calculate P&L, Tax, and Cash Flow following the Excel formulas.
+    
+    Returns dict with pnl, tax, and cashflow sections.
+    """
+    is_pre_tax = (pre_tax_pre_finance == "Yes")
+    
+    # ── P&L Calculation ──
+    pnl_realisation = {}
+    pnl_operating_cost = {}
+    pnl_coal_purchase = {}
+    pnl_total_cost = {}
+    pnl_ebidta = {}
+    pnl_depreciation = {}
+    pnl_salvage = {}
+    pnl_ebit = {}
+    pnl_interest = {}
+    pnl_ebt = {}
+    pnl_tax = {}
+    pnl_pat = {}
+    pnl_csr = {}
+    pnl_pat_after_csr = {}
+    
+    # ── Tax Calculation ──
+    tax_normal = {}
+    
+    # ── CF Calculation ──
+    cf_project = {}
+    cf_project_cumulative = {}
+    cf_equity = {}
+    cf_equity_cumulative = {}
+    
+    project_cf_series = []
+    equity_cf_series = []
+    
+    prev_project_cum = 0.0
+    prev_equity_cum = 0.0
+    
+    for yr in year_headers:
+        yr_str = str(yr)
+        
+        rev = revenue_yearly.get(yr_str, 0.0)
+        opex = opex_yearly.get(yr_str, 0.0)
+        coal_pur = coal_purchase_yearly.get(yr_str, 0.0)
+        depr = depr_yearly.get(yr_str, 0.0)
+        salvage = salvage_yearly.get(yr_str, 0.0)
+        interest_val = interest_yearly.get(yr_str, 0.0)
+        borrow_val = borrowings_yearly.get(yr_str, 0.0)
+        repay_val = repayments_yearly.get(yr_str, 0.0)
+        capex_val = capex_dep_yearly.get(yr_str, 0.0)
+        
+        # P&L
+        realisation = rev
+        operating_cost_val = (opex + coal_pur)
+        total_cost = operating_cost_val
+        ebidta = realisation - total_cost
+        ebit = ebidta - depr + salvage
+        
+        if is_pre_tax:
+            interest_expense = 0.0
+        else:
+            interest_expense = interest_val
+        
+        ebt = ebit - interest_expense
+        
+        # Tax
+        if is_pre_tax:
+            normal_tax = 0.0
+        else:
+            normal_tax = max(0.0, ebt * CORPORATE_TAX_RATE)
+        
+        pat = ebt - normal_tax
+        csr = max(0.0, pat * CSR_RATE) if pat > 0 else 0.0
+        pat_after_csr_val = pat - csr
+        
+        pnl_realisation[yr_str] = round(realisation, 6)
+        pnl_operating_cost[yr_str] = round(operating_cost_val, 6)
+        pnl_coal_purchase[yr_str] = round(coal_pur, 6)
+        pnl_total_cost[yr_str] = round(total_cost, 6)
+        pnl_ebidta[yr_str] = round(ebidta, 6)
+        pnl_depreciation[yr_str] = round(depr, 6)
+        pnl_salvage[yr_str] = round(salvage, 6)
+        pnl_ebit[yr_str] = round(ebit, 6)
+        pnl_interest[yr_str] = round(interest_expense, 6)
+        pnl_ebt[yr_str] = round(ebt, 6)
+        pnl_tax[yr_str] = round(normal_tax, 6)
+        pnl_pat[yr_str] = round(pat, 6)
+        pnl_csr[yr_str] = round(csr, 6)
+        pnl_pat_after_csr[yr_str] = round(pat_after_csr_val, 6)
+        tax_normal[yr_str] = round(normal_tax, 6)
+        
+        # CF - Project
+        cf_inflow = realisation
+        cf_opex_out = -operating_cost_val
+        cf_capex_out = -capex_val
+        cf_tax_out = -normal_tax
+        project_cashflow = cf_inflow + cf_opex_out + cf_capex_out + cf_tax_out
+        
+        prev_project_cum += project_cashflow
+        cf_project[yr_str] = round(project_cashflow, 6)
+        cf_project_cumulative[yr_str] = round(prev_project_cum, 6)
+        project_cf_series.append(project_cashflow)
+        
+        # CF - Equity
+        eq_inflow = realisation + borrow_val
+        eq_opex_out = -operating_cost_val
+        eq_capex_out = -capex_val
+        eq_tax_out = -normal_tax
+        eq_interest_out = -interest_expense
+        eq_repay_out = -repay_val
+        equity_cashflow = eq_inflow + eq_opex_out + eq_capex_out + eq_tax_out + eq_interest_out + eq_repay_out
+        
+        prev_equity_cum += equity_cashflow
+        cf_equity[yr_str] = round(equity_cashflow, 6)
+        cf_equity_cumulative[yr_str] = round(prev_equity_cum, 6)
+        equity_cf_series.append(equity_cashflow)
+    
+    # IRR and NPV
+    try:
+        project_irr = float(np.irr(project_cf_series)) if hasattr(np, 'irr') else float(np.polynomial.polynomial.polyroots([1] + project_cf_series)[0])
+    except Exception:
+        project_irr = None
+    
+    try:
+        equity_irr_val = float(np.irr(equity_cf_series)) if hasattr(np, 'irr') else None
+    except Exception:
+        equity_irr_val = None
+    
+    # Manual IRR calculation (since numpy.irr may not be available)
+    def calc_irr(cashflows, guess=0.1, max_iter=1000, tol=1e-8):
+        """Newton-Raphson IRR calculation."""
+        rate = guess
+        for _ in range(max_iter):
+            npv = sum(cf / (1 + rate) ** t for t, cf in enumerate(cashflows))
+            dnpv = sum(-t * cf / (1 + rate) ** (t + 1) for t, cf in enumerate(cashflows))
+            if abs(dnpv) < 1e-14:
+                break
+            new_rate = rate - npv / dnpv
+            if abs(new_rate - rate) < tol:
+                return round(new_rate, 10)
+            rate = new_rate
+        return round(rate, 10)
+    
+    def calc_npv(rate, cashflows):
+        """NPV calculation."""
+        return sum(cf / (1 + rate) ** (t + 1) for t, cf in enumerate(cashflows))
+    
+    try:
+        project_irr = calc_irr(project_cf_series)
+    except Exception:
+        project_irr = None
+    
+    try:
+        equity_irr_val = calc_irr(equity_cf_series)
+    except Exception:
+        equity_irr_val = None
+    
+    project_npv = round(calc_npv(DISCOUNT_RATE, project_cf_series), 6)
+    equity_npv = round(calc_npv(DISCOUNT_RATE, equity_cf_series), 6)
+    
+    # Payback period (years from start until cumulative CF > 0)
+    payback_from_now = None
+    for i, yr in enumerate(year_headers):
+        yr_str = str(yr)
+        if cf_project_cumulative[yr_str] >= 0 and i > 0:
+            payback_from_now = i
+            break
+    
+    # LOM totals
+    lom_realisation = sum(pnl_realisation.values())
+    lom_coal_prod = 225.70440651  # From production schedule
+    
+    return {
+        "pnl": {
+            "realisation": pnl_realisation,
+            "operating_cost": pnl_operating_cost,
+            "coal_purchase": pnl_coal_purchase,
+            "total_cost": pnl_total_cost,
+            "ebidta": pnl_ebidta,
+            "depreciation": pnl_depreciation,
+            "salvage": pnl_salvage,
+            "ebit": pnl_ebit,
+            "interest": pnl_interest,
+            "ebt": pnl_ebt,
+            "tax": pnl_tax,
+            "pat": pnl_pat,
+            "csr": pnl_csr,
+            "pat_after_csr": pnl_pat_after_csr,
+        },
+        "tax": {
+            "normal_tax": tax_normal,
+            "tax_rate": CORPORATE_TAX_RATE,
+        },
+        "cashflow": {
+            "project_cf": cf_project,
+            "project_cumulative": cf_project_cumulative,
+            "equity_cf": cf_equity,
+            "equity_cumulative": cf_equity_cumulative,
+            "project_irr": project_irr,
+            "project_npv": project_npv,
+            "equity_irr": equity_irr_val,
+            "equity_npv": equity_npv,
+            "payback_years": payback_from_now,
+            "discount_rate": DISCOUNT_RATE,
+        },
+    }
+
 
 def run_calculation():
     print("Connecting to MongoDB...")
@@ -940,7 +1274,6 @@ def run_calculation():
                 gov_bank_fee[yr_str] = round(bank_fee, 6)
                 gov_total_fees[yr_str] = round(total_fees_val, 6)
                 gov_total_fees_with_mc_bank[yr_str] = round(total_fees_with_mc_bank_val, 6)
-                
             # ----------------------------------------------------
             # 4. Project Grand Total OPEX (INR Cr)
             # ----------------------------------------------------
@@ -950,6 +1283,127 @@ def run_calculation():
                 tot_opex_val = opex_subtotal[yr_str] + opex_mdo_contractor[yr_str] + total_fees_with_mc_bank_val
                 project_grand_total_opex[yr_str] = round(tot_opex_val, 6)
 
+        # ============================================================
+        # 5. FINANCIAL CALCULATIONS (Post year-loop)
+        #    Borrowings, IDC, Revenue, Depreciation, P&L, Tax, CF
+        # ============================================================
+        print(f"  Computing financial model for {scenario_key}...")
+        
+        # --- 5a. Revenue Computation ---
+        # Revenue depends on coal_price_type (Commercial vs NCI)
+        revenue_yearly = {}
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            prod = float(prod_coal.get(yr_str, 0.0))
+            nci_val = float(nci_price.get(yr_str, 0.0))
+            comm_val = float(comm_price.get(yr_str, 0.0))
+            
+            if yr <= 0 or prod <= 0:
+                revenue_yearly[yr_str] = 0.0
+            else:
+                # Revenue = NCI revenue + Commercial revenue from Government sheet
+                # NCI price * prod / 10 or Comm price * prod / 10
+                if coal_price_type == "NCI":
+                    revenue_yearly[yr_str] = round(nci_val * prod / 10.0, 6) if nci_val > 0 else round(comm_val * prod / 10.0, 6)
+                else:
+                    # Commercial: use comm_price revenue directly
+                    revenue_yearly[yr_str] = round(comm_val * prod / 10.0, 6) if comm_val > 0 else 0.0
+        
+        # --- 5b. Owner Borrowings & IDC ---
+        # Debt % depends on pre_tax_pre_finance switch
+        if pre_tax_pre_finance == "Yes":
+            owner_debt_pct = 0.0
+            mdo_debt_pct_val = 0.0
+        else:
+            owner_debt_pct = OWNER_DEBT_PCT
+            mdo_debt_pct_val = MDO_DEBT_PCT
+        
+        # Use the capex values already computed for borrowing calculation
+        # Borrowings are based on Depreciation-Owner!H23 (initial sub-total)
+        # and Depreciation-Owner!H33 (sustaining sub-total)
+        # These correspond to owner capex without IDC and without upfront
+        owner_borrowings = calculate_borrowings(
+            capex_initial_owner, capex_sustaining_owner,
+            owner_debt_pct, YEAR_HEADERS
+        )
+        
+        mdo_borrowings = calculate_borrowings(
+            capex_initial_mdo, capex_sustaining_mdo,
+            mdo_debt_pct_val, YEAR_HEADERS
+        )
+        
+        # --- 5c. IDC (Interest During Construction) ---
+        # IDC = Total Interest Cost from Borrowings-Owner per year
+        # This adjusts the Owner CAPEX total
+        idc_yearly = {}
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            idc_val = owner_borrowings["total_interest"][yr_str]
+            idc_yearly[yr_str] = round(idc_val, 6)
+            # Update Owner CAPEX with IDC
+            capex_initial_owner[yr_str] = round(
+                capex_initial_owner[yr_str] - 0.0 + idc_val, 6  # Replace hardcoded 0 with actual IDC
+            )
+            capex_total_owner[yr_str] = round(
+                capex_initial_owner[yr_str] + capex_sustaining_owner[yr_str], 6
+            )
+            # Update project totals
+            capex_initial_project[yr_str] = round(
+                capex_initial_owner[yr_str] + capex_initial_mdo[yr_str], 6
+            )
+            capex_total_project[yr_str] = round(
+                capex_total_owner[yr_str] + capex_total_mdo[yr_str], 6
+            )
+        
+        # --- 5d. Depreciation & Salvage ---
+        # Use baseline depreciation data (these don't change with pre-tax switch)
+        depr_yearly_scenario = dict(BASELINE_DEPR_YEARLY)
+        salvage_yearly_scenario = {}
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            salvage_yearly_scenario[yr_str] = BASELINE_SALVAGE.get(yr_str, 0.0)
+        
+        # Capex for CF (= Depreciation-Owner!H35 = total capex from depreciation sheet)
+        # When L6="No", this includes IDC
+        capex_for_cf = {}
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            base_capex = BASELINE_CAPEX_DEP_YEARLY.get(yr_str, 0.0)
+            idc_adj = idc_yearly.get(yr_str, 0.0)
+            capex_for_cf[yr_str] = round(base_capex + idc_adj, 6)
+        
+        # --- 5e. Operating Cost for P&L ---
+        # P&L Operating Cost = Project OPEX Grand Total (Row 100)
+        # This includes: MDO contractor + Owner mining costs + contingency + Govt fees + transportation
+        # P&L!G15 = SUM(G17:G18) × (1+sensitivity)
+        # G17 = 'Project OPEX'!E100 (Grand Total)
+        # G18 = 'Coal Price'!E10 (Coal Purchase - handled separately in pnl func)
+        opex_for_pnl = {}
+        for yr in YEAR_HEADERS:
+            yr_str = str(yr)
+            opex_for_pnl[yr_str] = round(project_grand_total_opex.get(yr_str, 0.0), 6)
+        
+        # --- 5f. P&L, Tax, Cash Flow ---
+        financial_results = calculate_pnl_tax_cf(
+            year_headers=YEAR_HEADERS,
+            revenue_yearly=revenue_yearly,
+            opex_yearly=opex_for_pnl,
+            coal_purchase_yearly=COAL_PURCHASE_YEARLY,
+            capex_dep_yearly=capex_for_cf,
+            depr_yearly=depr_yearly_scenario,
+            salvage_yearly=salvage_yearly_scenario,
+            interest_yearly=owner_borrowings["total_interest"],
+            borrowings_yearly=owner_borrowings["total_borrowings"],
+            repayments_yearly=owner_borrowings["total_repayments"],
+            pre_tax_pre_finance=pre_tax_pre_finance,
+        )
+        
+        print(f"    P&L EBIDTA LOM: {sum(financial_results['pnl']['ebidta'].values()):.2f} Cr")
+        print(f"    Tax LOM: {sum(financial_results['tax']['normal_tax'].values()):.2f} Cr")
+        print(f"    Interest LOM: {sum(financial_results['pnl']['interest'].values()):.2f} Cr")
+        print(f"    Project IRR: {financial_results['cashflow']['project_irr']}")
+        print(f"    Project NPV: {financial_results['cashflow']['project_npv']:.2f} Cr")
+        
         # Store calculated results in dictionary format
         result_doc = {
             "projectId": "tem_project_1",
@@ -974,7 +1428,8 @@ def run_calculation():
                     "project_sustaining": capex_sustaining_project,
                     "project_total": capex_total_project,
                     "hemm_initial": scenario_hemm_initial,
-                    "hemm_sustaining": scenario_hemm_sustaining
+                    "hemm_sustaining": scenario_hemm_sustaining,
+                    "idc": idc_yearly
                 },
                 "opex": {
                     "diesel": opex_diesel,
@@ -1014,6 +1469,24 @@ def run_calculation():
                     "total_fees_with_mc_bank": gov_total_fees_with_mc_bank
                 },
                 "project_grand_total_opex": project_grand_total_opex,
+                "pnl": financial_results["pnl"],
+                "tax": financial_results["tax"],
+                "borrowings": {
+                    "owner": {
+                        "total_interest": owner_borrowings["total_interest"],
+                        "total_borrowings": owner_borrowings["total_borrowings"],
+                        "total_repayments": owner_borrowings["total_repayments"],
+                        "debt_pct": owner_debt_pct,
+                    },
+                    "mdo": {
+                        "total_interest": mdo_borrowings["total_interest"],
+                        "total_borrowings": mdo_borrowings["total_borrowings"],
+                        "total_repayments": mdo_borrowings["total_repayments"],
+                        "debt_pct": mdo_debt_pct_val,
+                    },
+                },
+                "cashflow": financial_results["cashflow"],
+                "revenue": revenue_yearly,
                 "production_schedule": {
                     "coal_production": clean_coal_prod,
                     "waste_volume": clean_waste_rem,

@@ -317,6 +317,8 @@ export function useScenarioData() {
     const capex = scenario.results.capex;
     const opex = scenario.results.opex;
     const govt = scenario.results.government;
+    const pnl = scenario.results.pnl;
+    const cf = scenario.results.cashflow;
 
     const lomCoalProd = scenario.results.production_schedule?.coal_production
       ? sumYearly(scenario.results.production_schedule.coal_production)
@@ -330,6 +332,22 @@ export function useScenarioData() {
       totalMdoContractor: lomCoalProd > 0 ? (sumYearly(opex.mdo_contractor) / lomCoalProd) * 10 : 0,
       totalGovtFees: lomCoalProd > 0 ? (sumYearly(govt.total_fees_with_mc_bank) / lomCoalProd) * 10 : 0,
       totalProjectOpex: lomCoalProd > 0 ? (sumYearly(scenario.results.project_grand_total_opex) / lomCoalProd) * 10 : 0,
+      // Financial KPIs
+      projectIrr: cf?.project_irr ?? null,
+      equityIrr: cf?.equity_irr ?? null,
+      projectNpv: cf?.project_npv ?? 0,
+      equityNpv: cf?.equity_npv ?? 0,
+      paybackYears: cf?.payback_years ?? null,
+      lomEbidta: pnl ? sumYearly(pnl.ebidta) : 0,
+      lomEbit: pnl ? sumYearly(pnl.ebit) : 0,
+      lomInterest: pnl ? sumYearly(pnl.interest) : 0,
+      lomTax: pnl ? sumYearly(pnl.tax) : 0,
+      lomPat: pnl ? sumYearly(pnl.pat) : 0,
+      lomRevenue: pnl ? sumYearly(pnl.realisation) : 0,
+      lomIdc: capex.idc ? sumYearly(capex.idc) : 0,
+      lomDepreciation: pnl ? sumYearly(pnl.depreciation) : 0,
+      lomCsr: pnl ? sumYearly(pnl.csr) : 0,
+      lomPatAfterCsr: pnl ? sumYearly(pnl.pat_after_csr) : 0,
     };
   }, [scenario]);
 

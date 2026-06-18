@@ -35,6 +35,7 @@ export interface ScenarioData {
       project_total: YearlyValues;
       hemm_initial?: YearlyValues;
       hemm_sustaining?: YearlyValues;
+      idc?: YearlyValues;
     };
     opex: {
       diesel: YearlyValues;
@@ -74,6 +75,53 @@ export interface ScenarioData {
       total_fees_with_mc_bank: YearlyValues;
     };
     project_grand_total_opex: YearlyValues;
+    pnl?: {
+      realisation: YearlyValues;
+      operating_cost: YearlyValues;
+      coal_purchase: YearlyValues;
+      total_cost: YearlyValues;
+      ebidta: YearlyValues;
+      depreciation: YearlyValues;
+      salvage: YearlyValues;
+      ebit: YearlyValues;
+      interest: YearlyValues;
+      ebt: YearlyValues;
+      tax: YearlyValues;
+      pat: YearlyValues;
+      csr: YearlyValues;
+      pat_after_csr: YearlyValues;
+    };
+    tax?: {
+      normal_tax: YearlyValues;
+      tax_rate: number;
+    };
+    borrowings?: {
+      owner: {
+        total_interest: YearlyValues;
+        total_borrowings: YearlyValues;
+        total_repayments: YearlyValues;
+        debt_pct: number;
+      };
+      mdo: {
+        total_interest: YearlyValues;
+        total_borrowings: YearlyValues;
+        total_repayments: YearlyValues;
+        debt_pct: number;
+      };
+    };
+    cashflow?: {
+      project_cf: YearlyValues;
+      project_cumulative: YearlyValues;
+      equity_cf: YearlyValues;
+      equity_cumulative: YearlyValues;
+      project_irr: number | null;
+      project_npv: number;
+      equity_irr: number | null;
+      equity_npv: number;
+      payback_years: number | null;
+      discount_rate: number;
+    };
+    revenue?: YearlyValues;
     production_schedule?: {
       coal_production: YearlyValues;
       waste_volume: YearlyValues;

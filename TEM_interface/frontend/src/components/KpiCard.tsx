@@ -5,8 +5,9 @@ interface KpiCardProps {
   value: number;
   unit?: string;
   icon: string;
-  variant: "indigo" | "blue" | "amber" | "emerald" | "rose" | "violet" | "cyan";
+  variant: "indigo" | "blue" | "amber" | "emerald" | "rose" | "violet" | "cyan" | "orange";
   comingSoon?: boolean;
+  customDisplay?: string;
 }
 
 export function KpiCard({
@@ -16,6 +17,7 @@ export function KpiCard({
   icon,
   variant,
   comingSoon = false,
+  customDisplay,
 }: KpiCardProps) {
   return (
     <div className={`kpi-card kpi-card--${variant} animate-in`}>
@@ -24,6 +26,10 @@ export function KpiCard({
       {comingSoon ? (
         <div className="kpi-card__value" style={{ fontSize: "1.1rem", color: "var(--text-tertiary)" }}>
           Coming Soon
+        </div>
+      ) : customDisplay ? (
+        <div className="kpi-card__value" style={{ fontSize: "1.3rem" }}>
+          {customDisplay}
         </div>
       ) : (
         <div className="kpi-card__value">

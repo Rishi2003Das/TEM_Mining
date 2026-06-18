@@ -1,0 +1,697 @@
+
+================================================================================
+  PRE-TAX / PRE-FINANCE FORMULA REFERENCE DOCUMENT
+  Source: IN1411_Radhikapur_Option 3_15 Mtpa_rev1_20260612.xlsx
+  Scope:  Complete formula dependency mapping for the "Pre-Tax & Pre-Finance"
+          switch (Assumptions_Dashboard!L6), covering:
+            1. Borrowings-Owner (Debt Schedule, IDC, Working Capital)
+            2. Borrowings-MDO (MDO Debt Schedule)
+            3. Depreciation-Owner (Straight-Line Depreciation)
+            4. Owner CAPEX – IDC Row (Interest During Construction)
+            5. Tax Sheet (Normal Tax & MAT)
+            6. P&L (Profit & Loss Statement)
+            7. CF (Cash Flow – Project & Equity IRR)
+================================================================================
+  Generated: 2026-06-18
+  Purpose:   Formula mapping for web-app backend — making the Pre-Tax/Pre-Finance
+             switch functional in the TEM Dashboard.
+================================================================================
+
+
+========== OVERVIEW ==========
+
+The Pre-Tax / Pre-Finance switch is controlled by:
+
+    Assumptions_Dashboard!L6 = "Yes" or "No"
+
+This is a MASTER SWITCH that cascades through 4 dependent parameters and
+ultimately affects 6 calculation sheets:
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │  L6 = "Yes" (Pre-Tax, Pre-Finance Basis)                               │
+  │  ──────────────────────────────────────────────                         │
+  │  • D144 = 0      (Owner Debt % = 0 → 100% equity, NO borrowing)       │
+  │  • D148 = 0      (MDO Debt % = 0 → 100% equity, NO borrowing)         │
+  │  • Tax!F14 = 0   (Normal Tax zeroed via IF check on L6)                │
+  │  • IDC = 0       (No interest → no Interest During Construction)       │
+  │  • P&L Interest = 0  (No borrowings → no interest expense)             │
+  │  • CF Taxes = 0  (No tax in cashflow)                                  │
+  │  • CF Interest = 0, Repayment = 0, Borrowing = 0                      │
+  │                                                                        │
+  │  RESULT: Pure operating model without debt service or taxation.         │
+  │          Project IRR = Equity IRR (identical cashflows).                │
+  │          All CAPEX is 100% equity-funded.                               │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │  L6 = "No" (Full Model with Debt and Tax)                              │
+  │  ────────────────────────────────────────                               │
+  │  • D144 = 0.30   (Owner: 30% Debt, 70% Equity)                        │
+  │  • D148 = 0.70   (MDO: 70% Debt, 30% Equity)                          │
+  │  • Tax computed   (Corporate Tax @ 25.17% on positive EBT)             │
+  │  • IDC computed   (Interest During Construction added to Owner CAPEX)  │
+  │  • P&L shows Interest expense from Borrowings-Owner                    │
+  │  • CF shows Taxes, Interest, Repayment, Borrowing inflows              │
+  │  • Equity IRR ≠ Project IRR (leverage effect)                          │
+  │                                                                        │
+  │  RESULT: Full financial model with debt, taxes, and equity returns.    │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+
+========== KEY HARD INPUTS CONTROLLED BY L6 ==========
+
+Cell                          | L6="Yes"  | L6="No"  | Description
+──────────────────────────────|──────────-|──────────|──────────────────────
+Assumptions_Dashboard!D144    | 0         | 0.30     | Owner Debt % (Portion of Debt Finance)
+  Formula: =IF($L$6="Yes", 0, 0.30)
+
+Assumptions_Dashboard!D148    | 0         | 0.70     | MDO Debt % (MDO Portion of Debt)
+  Formula: =IF($L$6="Yes", 0, 0.70)
+
+Assumptions_Dashboard!D128    | 0.2517    | 0.2517   | Corporate Tax Rate (always set, but zeroed in Tax sheet when L6="Yes")
+Assumptions_Dashboard!D129    | =15%*(1+12%)*(1+4%) | same | MAT rate (Minimum Alternate Tax)
+Assumptions_Dashboard!D132    | 0.02      | 0.02     | CSR Fund % (applied to PAT)
+Assumptions_Dashboard!D140    | 0.10      | 0.10     | Corporate Loan Interest Rate (10%)
+Assumptions_Dashboard!D141    | 0.10      | 0.10     | Working Capital Loan Interest Rate (10%)
+Assumptions_Dashboard!D142    | 5         | 5        | Moratorium Period (years)
+Assumptions_Dashboard!D143    | 7         | 7        | Payback Period (years)
+Assumptions_Dashboard!D147    | 0.20      | 0.20     | MDO Margin %
+
+
+================================================================================
+SECTION 1 – BORROWINGS-OWNER SHEET
+================================================================================
+
+Sheet: Borrowings-Owner
+Purpose: Calculates Owner's debt schedule, interest costs (IDC), and working
+         capital borrowing. ALL borrowings become ZERO when L6="Yes" because
+         D144 drives the Debt % to zero.
+
+Structure: Cols G–AC = Year-by-Year (same years as Production Schedule)
+           Col E = LOM totals
+
+---- Technical Drivers (rows 1–4) ----
+
+G1  = ='Production Schedule'!E1       [Date label for each year]
+C2  = Year No.  | G2 = ='Production Schedule'!E3
+C4  = Production | D4 = Mt | G4 = ='Production Schedule'!E5
+
+---- Capital Borrowing (rows 5–20) ----
+
+C6  = Non Funded Capex              | G6  = ='Depreciation-Owner'!H23
+      [Total initial CAPEX sub-total from Depreciation-Owner sheet]
+
+B7  = "No"  [Toggle: whether Sustaining Capital is debt-funded]
+C7  = Sustaining Capital            | G7  = =IF($B$7="Yes",'Depreciation-Owner'!H33,0)
+      [Currently "No" → sustaining capex not debt-funded]
+
+G8  = =SUM(G6:G7)                  [Total capex eligible for borrowing]
+
+C10 = Funded Capex                  | G10 = [Additional funded capex, currently 0]
+
+---- Debt : Equity Split (rows 12–14) ----
+
+C13 = "- Debt"    | E13 = =E20/E8 (calculated LOM ratio)
+  G13 = =Assumptions_Dashboard!$D$144
+        ▲▲▲ THIS IS THE KEY FORMULA ▲▲▲
+        When L6="Yes": D144=0 → Debt%=0 → NO borrowing
+        When L6="No":  D144=0.30 → 30% of capex is borrowed
+
+C14 = "- Equity"  | G14 = =1-G13
+        When L6="Yes": Equity=100%
+        When L6="No":  Equity=70%
+
+---- Interest Rate ----
+
+E16 = =Assumptions_Dashboard!$D$140   [= 0.10 = 10% interest rate]
+
+---- Non-Funded Capital Borrowing (rows 18–63) ----
+
+C19 = Equity Capital     | G19 = =G8-G20  [Capex minus Debt portion]
+B20 = "Yes" [Debt Schedule toggle]
+C20 = Debt Schedule      | G20 = =IF($B$20="No", 0, G8*G13)
+      When L6="Yes": G13=0 → G20=0 → NO DEBT
+      When L6="No":  G20 = Capex × 0.30
+
+C22 = Opening Borrowings | G22 = =F63   [Previous year's closing balance]
+C23 = Add: Further Borr. | G23 = =IF(G20>0, G20, 0)
+      [Borrowing only if debt schedule is positive]
+
+C24 = Less: Repayments   | G24 = =SUM(G25:G59)
+      Repayment Schedule (rows 25–59):
+        Each year's borrowing is repaid over 7 years (D143)
+        starting after the moratorium period (D142 = 5 years).
+        G25 formula (ArrayFormula): =$G20/7
+        [Divides each year's borrowing into 7 equal annual repayments]
+        Repayments begin in the year = borrowing_year + moratorium + 1
+
+C61 = Add: Interest Cost | G61 = =(G22-G24)*G16 + G23*G16*0.5 + G24*G16*0.5
+      [Interest on opening balance (after repayment) + half-year interest on
+       new borrowings + half-year interest on repayments]
+      When L6="Yes": All balances=0 → Interest=0
+
+C62 = Less: Interest Paid | G62 = =G61  [Interest paid = Interest accrued]
+
+C63 = Closing Borrowings  | G63 = =G22+G23-G24+G61-G62
+      [Opening + New Borrowings - Repayments + Interest - Interest Paid]
+      When L6="Yes": All terms=0 → Closing=0
+
+---- Funded Capital Borrowing (rows 65–71) ----
+
+[Same structure as Non-Funded, but for Funded Capex (currently 0)]
+C66 = Opening Borrowings  | G66 = =F71
+C67 = Add: Further Borr.  | G67 = =G10*G13  [Funded capex × Debt%]
+C68 = Less: Repayments    | [Similar to rows 24-59]
+C69 = Add: Interest Cost  | G69 = =(G66-G68)*G16 + G67*G16*0.5 + G68*G16*0.5
+C70 = Less: Interest Paid | G70 = =G69
+C71 = Closing Borrowings  | G71 = =G66+G67-G68+G69-G70
+
+---- Working Capital Borrowing (rows 75–92) ----
+
+B76 = 45 | C76 = Accounts Receivable | G76 = =$B$76/365*(Realisation)
+      [45 days of revenue as receivables]
+B77 = 30 | C77 = Inventory           | G77 = =$B$77/365*(Operating Cost)
+      [30 days of opex as inventory]
+B78 = 21 | C78 = Accounts Payable    | G78 = =$B$78/365*(Operating Cost)
+      [21 days of opex as payables]
+
+C79 = Total Working Capital | G79 = =SUM(G76:G77)-G78
+C80 = Change in WC          | G80 = =G79  [first year]; H80 = =H79-G79 [delta]
+B81 = "Yes" | C81 = Working Capital   | G81 = =IF($B$81="Yes", G80, 0)
+
+C84 = "- Debt"  | G84 = =E13  [Uses same debt ratio as capital borrowing]
+C85 = "- Equity" | G85 = =1-E84
+
+C87 = Opening Borrowings  | G87 = =F92
+B88 = "Yes" | C88 = Add: Further Borr. | G88 = =IF($B$88="No",0,MAX(G82*G84,0))
+C89 = Less: Repayments    | G89 = =F88  [Repay prior year's borrowing]
+C90 = Add: Interest Cost  | G90 = =+G87*$E$16+G88*$E$16/2
+C91 = Less: Interest Paid | G91 = =G90
+C92 = Closing Borrowings  | G92 = =+G87+G88-G89+G90-G91
+
+---- Total Interest Cost (row 96) ----
+
+C96 = Total Interest Cost | G96 = =G62+G91+G70
+      [= Non-funded Interest + WC Interest + Funded Interest]
+      THIS IS THE IDC VALUE that feeds into Owner CAPEX Row 25
+      When L6="Yes": ALL three terms = 0 → Total Interest = 0
+
+
+================================================================================
+SECTION 2 – BORROWINGS-MDO SHEET
+================================================================================
+
+Sheet: Borrowings-MDO
+Purpose: Same structure as Borrowings-Owner but for MDO operator's borrowings.
+         Only active when Mining Mode = "MDO".
+
+Key difference:
+  G13 = =Assumptions_Dashboard!$D$148
+        When L6="Yes": D148=0 → MDO Debt%=0 → NO MDO borrowing
+        When L6="No":  D148=0.70 → 70% of MDO capex is borrowed
+
+All other formulas mirror Borrowings-Owner structure identically.
+MDO Total Interest feeds into 'MDO CAPEX' IDC row.
+
+
+================================================================================
+SECTION 3 – DEPRECIATION-OWNER SHEET
+================================================================================
+
+Sheet: Depreciation-Owner
+Purpose: Calculates straight-line depreciation for each Owner CAPEX line item.
+         Depreciation is used in P&L and Tax calculations.
+         Also provides the total CAPEX figure for CF sheet.
+
+---- Structure ----
+Rows 3–7:   Production data (coal, OB, waste rehandle, AMH)
+Rows 8:     Capital Expenditure header
+Rows 9–22:  Initial CAPEX items (mirrors Owner CAPEX rows 11–24)
+  B9–B22:  Toggle flags ("Yes"/"No") for including each item
+  H9:      =IF($B9="Yes",'Owner CAPEX'!E11,0)*(1+Sensitivity!$C$4)
+           [Each capex item × (1 + capex sensitivity factor)]
+
+Row 23:     Sub-Total (Initial) | H23 = =SUM(H9:H22)
+Rows 25–32: Sustaining CAPEX items (mirrors Owner CAPEX rows 31–38)
+Row 33:     Sub-Total (Sustaining) | H33 = =SUM(H25:H32)
+Row 35:     Total Capital Expenditure | H35 = =H23+H33
+
+---- Depreciation Calculation (rows 38–113) ----
+
+Row 38: Header "Depreciation - As per books (Straight Line Method)"
+Rows 39–113: Individual asset depreciation schedules
+  Each asset block (6 rows per item):
+    Row X:   Asset Name, Useful Life
+    Row X+1: Opening WDV (Written Down Value)
+    Row X+2: Additions (= capex from rows 9–32)
+    Row X+3: Depreciation = (Opening WDV + Additions) / Useful Life
+    Row X+4: Salvage Value (at end of life)
+    Row X+5: Closing WDV = Opening + Additions - Depreciation - Salvage
+
+Row 114: Total Depreciation (As per Book)
+  H114 = =H44+H50+H56+H62+H68+H74+H80+H86+H92+H98+H104+H110
+  [Sum of depreciation for all 12 asset categories]
+
+  *** DEPRECIATION IS NOT AFFECTED BY L6 ***
+  Depreciation is always calculated regardless of pre-tax/pre-finance setting.
+  It represents the economic wear of assets, independent of financing.
+  However, it is only USED for tax calculation purposes when L6="No".
+
+
+================================================================================
+SECTION 4 – OWNER CAPEX – IDC ROW (Row 25)
+================================================================================
+
+Sheet: Owner CAPEX
+Row 25: IDC (Interest During Construction)
+
+B25 = "IDC"
+C25 = "INR Cr"
+D25 = =+SUM(E25:AR25)    [LOM Total IDC]
+
+Year-by-year formula:
+  E25 = ='Borrowings-Owner'!G96
+  F25 = ='Borrowings-Owner'!H96
+  ... [Each year pulls Total Interest Cost from Borrowings-Owner]
+
+When L6="Yes":
+  Borrowings-Owner!G96 = 0 (no debt → no interest)
+  → IDC = 0 for all years
+  → Owner CAPEX Row 26 (Total Initial) is LOWER (no IDC component)
+
+When L6="No":
+  Borrowings-Owner!G96 = calculated interest from debt schedule
+  → IDC > 0 during construction years
+  → Owner CAPEX Row 26 (Total Initial) is HIGHER by the IDC amount
+
+Impact on CAPEX totals:
+  Owner CAPEX!D26 = =SUM(D11:D25)  [Includes IDC]
+  Owner CAPEX!D41 = =SUM(E41:AN41) [=D26+D39 = Initial + Sustaining]
+  → Total Owner CAPEX changes based on IDC inclusion
+
+
+================================================================================
+SECTION 5 – TAX SHEET
+================================================================================
+
+Sheet: Tax
+Purpose: Calculates Corporate Tax (Normal Tax at 25.17%) on taxable income.
+         THIS IS THE PRIMARY SHEET AFFECTED BY L6 DIRECTLY.
+
+---- Year Headers (rows 4–5) ----
+
+F4 = ='P&L'!G5     [Date]
+F5 = ='P&L'!G6     [Year number]
+
+---- Normal Tax Calculation (rows 7–14) ----
+
+C8  = EBIDTA        | F8  = ='P&L'!G23
+      [Earnings Before Interest, Depreciation, Tax, Amortisation]
+
+C9  = Less: Depreciation | F9 = ='Depreciation-Owner'!H114
+      [Total depreciation from Depreciation-Owner sheet]
+
+C10 = Less: Interest  | F10 = =-'P&L'!G31
+      [Interest expense (positive value) from P&L]
+      When L6="Yes": P&L!G31=0 → Tax!F10=0
+      When L6="No":  P&L!G31 has interest → Tax!F10 has value
+
+C11 = EBT for normal tax | F11 = =+F8-SUM(F9:F10)
+      [EBIDTA minus Depreciation minus Interest = Taxable Income]
+      EBT = Earnings Before Tax
+
+B14 = =Assumptions_Dashboard!D128   [= 0.2517 = 25.17% tax rate]
+C14 = Normal Tax
+F14 = =IF(Assumptions_Dashboard!$L$6="Yes", 0, IF(F11<0, 0, F11*$B$14))
+      ▲▲▲ THE CRITICAL FORMULA ▲▲▲
+
+      When L6="Yes": Tax = 0 UNCONDITIONALLY (pre-tax basis)
+      When L6="No":
+        IF EBT < 0 → Tax = 0 (loss year, no tax)
+        IF EBT ≥ 0 → Tax = EBT × 25.17%
+
+NOTE: The Tax sheet has 239 rows but in the current model, only rows 7–14
+      (Normal Tax) are actively used. MAT (Minimum Alternate Tax) section
+      appears to be structured but not actively referenced in the P&L/CF
+      for this project configuration.
+
+
+================================================================================
+SECTION 6 – P&L (PROFIT & LOSS) SHEET
+================================================================================
+
+Sheet: P&L
+Purpose: Full Profit & Loss statement. Shows how L6 affects the bottom line.
+
+---- Structure ----
+
+G5  = ='Production Schedule'!E1    [Date]
+G6  = ='Production Schedule'!E3    [Year number]
+
+---- Revenue ----
+
+C8  = Total Product | G8 = ='Production Schedule'!E5  [Coal production, Mt]
+C10 = Gross Revenue | G10 = =Government!E8+Government!E9
+      [NCI Revenue + Commercial Revenue for each year]
+
+C12 = Realisation   | G12 = =G10   [Same as Gross Revenue]
+      E12 (LOM) = =+SUM(G12:AP12)
+      F12 (INR/t) = =E12/$E$8*10  [Per-ton average over LOM]
+
+---- Costs ----
+
+C15 = Operating Cost | G15 = =SUM(G17:G18)*(1+Sensitivity!$C$5)
+      [Total operating cost with sensitivity adjustment]
+
+C17 = Operating Cost (Fixed) | G17 = ='Project OPEX'!E100
+      [Project OPEX Grand Total from Project OPEX sheet]
+
+C18 = Cost of Purchased Coal | G18 = ='Coal Price'!E10
+      [External coal purchase cost]
+
+C21 = Total Cost     | G21 = =G15  [Same as operating cost]
+
+---- EBIDTA ----
+
+C23 = EBIDTA         | G23 = =+G12-G21
+      [Realisation minus Total Cost]
+      NOT affected by L6 directly.
+
+C24 = EBIDTA %       | E24 = =+E23/E12
+
+---- Depreciation ----
+
+C26 = Less: Depreciation (Straight Line) | G26 = =-'Depreciation-Owner'!H114
+      [Negative sign: depreciation reduces profit]
+      NOT affected by L6. Always calculated.
+
+C27 = Add: Salvage Value | [End-of-life asset recovery]
+
+---- EBIT ----
+
+C29 = EBIT           | G29 = =+G23+G26+G27
+      [EBIDTA + Depreciation (negative) + Salvage Value]
+      NOT directly affected by L6.
+
+---- Interest ----
+
+C31 = Less: Interest  | G31 = =-'Borrowings-Owner'!G96
+      [Total Interest Cost from Borrowings-Owner, with negative sign]
+      ▲▲▲ AFFECTED BY L6 ▲▲▲
+      When L6="Yes": Borrowings-Owner!G96=0 → Interest=0
+      When L6="No":  Interest expense from debt schedule
+
+---- EBT ----
+
+C33 = EBT            | G33 = =+G29+G31
+      [EBIT + Interest (negative)]
+      When L6="Yes": EBT = EBIT (no interest deduction)
+      When L6="No":  EBT = EBIT - Interest
+
+---- Tax ----
+
+C35 = Less: Tax      | G35 = =-Tax!F14
+      ▲▲▲ AFFECTED BY L6 ▲▲▲
+      When L6="Yes": Tax!F14=0 → P&L Tax=0
+      When L6="No":  Tax = 25.17% × EBT (if positive)
+
+---- PAT ----
+
+C37 = PAT (Profit After Tax) | G37 = =+G33+G35
+      [EBT + Tax (negative)]
+      When L6="Yes": PAT = EBT = EBIT (no interest, no tax)
+      When L6="No":  PAT = EBT - Tax
+
+---- CSR ----
+
+C39 = CSR Spend per Companies Act | G39 = =-IF(G37<0, 0, G37*$C$40)
+      C40 = =Assumptions_Dashboard!D132 = 0.02 (2% of PAT)
+      [CSR is always calculated on PAT regardless of L6]
+      When L6="Yes": CSR = 2% of EBIT (since PAT=EBIT)
+      When L6="No":  CSR = 2% of PAT (after interest and tax)
+
+C41 = PAT after CSR   | G41 = =+G37+G39
+      [Final bottom line profit]
+
+
+================================================================================
+SECTION 7 – CF (CASH FLOW) SHEET
+================================================================================
+
+Sheet: CF
+Purpose: Project and Equity cash flow calculations, IRR, NPV, Payback.
+         This is where the full financial impact of L6 is reflected.
+
+---- Year Headers ----
+
+F2  = ='P&L'!G5    [Date]
+F3  = ='P&L'!G6    [Year number]
+
+==== PROJECT CASH FLOW (rows 5–21) ====
+
+C6  = Realisation        | F6  = ='P&L'!G12    [Revenue]
+C7  = Total Cash In-Flow | F7  = =SUM(F6:F6)   [= Revenue]
+
+C9  = Operating Cost     | F9  = =-'P&L'!G15   [Negative: cash outflow]
+C10 = Capex              | F10 = =-'Depreciation-Owner'!H35
+      [Total Capital Expenditure from Depreciation-Owner]
+      NOT directly affected by L6 (IDC is part of Owner CAPEX which feeds
+      into Depreciation-Owner, so indirectly affected).
+
+C11 = Taxes              | F11 = =-Tax!F14
+      ▲▲▲ AFFECTED BY L6 ▲▲▲
+      When L6="Yes": Tax=0 → No tax outflow in project cashflow
+      When L6="No":  Tax outflow from Normal Tax calculation
+
+C12 = Total Cash Out-Flow | F12 = =SUM(F9:F11)
+C14 = Project Cashflow    | F14 = =F7+F12  [Inflow + Outflow (negative)]
+C15 = Cumulative Cashflow | F15 = =F14; G15 = =F15+G14 [Running sum]
+
+C18 = Project IRR         | D18 = =IFERROR(IRR(F14:AB14), "-")
+      When L6="Yes": Higher IRR (no tax drain)
+      When L6="No":  Lower IRR (tax reduces cashflow)
+
+C19 = Project NPV         | D19 = =NPV(E19, F14:AB14)  [E19=0.10 discount rate]
+C20 = Payback (years from now)
+D21 = Payback (years from start of production)
+
+==== EQUITY CASH FLOW (rows 24–41) ====
+
+C25 = Realisation        | F25 = =F6  [Same revenue]
+C26 = Borrowing          | F26 = ='Borrowings-Owner'!G23 + 'Borrowings-Owner'!G67 + 'Borrowings-Owner'!G88
+      ▲▲▲ AFFECTED BY L6 ▲▲▲
+      [= Non-funded borrowings + Funded borrowings + WC borrowings]
+      When L6="Yes": All borrowings=0 → No debt inflow
+      When L6="No":  Debt inflows from all 3 categories
+
+C27 = Total Cash In-Flow | F27 = =SUM(F25:F26)
+      When L6="Yes": = Revenue only
+      When L6="No":  = Revenue + Borrowings
+
+C29 = Operating Cost     | F29 = =F9   [Same as project]
+C30 = Capex              | F30 = =F10  [Same as project]
+
+C31 = Taxes              | F31 = =-Tax!F14
+      ▲▲▲ AFFECTED BY L6 ▲▲▲
+      When L6="Yes": 0
+      When L6="No":  Tax outflow
+
+C32 = Interest           | F32 = ='P&L'!G31
+      ▲▲▲ AFFECTED BY L6 ▲▲▲
+      [Interest from P&L (negative value)]
+      When L6="Yes": 0
+      When L6="No":  Interest expense
+
+C33 = Repayment          | F33 = =-('Borrowings-Owner'!G24 + 'Borrowings-Owner'!G68 + 'Borrowings-Owner'!G89)
+      ▲▲▲ AFFECTED BY L6 ▲▲▲
+      [Debt repayments across all 3 borrowing categories]
+      When L6="Yes": 0 (no debt to repay)
+      When L6="No":  Repayment schedule amounts
+
+C34 = Total Cash Out-Flow | F34 = =SUM(F29:F33)
+C36 = Equity Shareholder Cashflow | F36 = =F27+F34
+C37 = Cumulative Cashflow | F37 = =F36; G37 = =F37+G36
+
+C40 = Equity IRR         | D40 = =IFERROR(IRR(F36:AB36), "-")
+      When L6="Yes": Equity IRR = Project IRR (identical cashflows)
+      When L6="No":  Equity IRR ≠ Project IRR (leverage effect)
+
+C41 = Equity NPV         | D41 = =NPV(E41, F36:AB36)  [E41 = same discount rate]
+
+==== Levelized Cost Metrics ====
+
+C50 = Levelized Cost per Tonne (Discounted Unit Cost)
+  D50 = =NPV(D45, 'Project OPEX'!I100:AA100)*10 / NPV(D45, 'Production Schedule'!I5:AA5)
+  [Discounted OPEX / Discounted Production = INR/t]
+  D45 = 0.10 [Discount rate]
+
+C56 = Levelized Capex (Discounted)
+  D56 = =NPV(D45, 'Project CAPEX'!E41:AA41)
+  [NPV of total project capex]
+
+
+================================================================================
+SECTION 8 – COMPLETE DEPENDENCY CHAIN (L6 → Final Outputs)
+================================================================================
+
+                          Assumptions_Dashboard!L6
+                                    │
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+               D144=IF()       D148=IF()       Tax!F14=IF()
+           (Owner Debt%)     (MDO Debt%)     (Normal Tax)
+                    │               │               │
+                    ▼               ▼               ▼
+          Borrowings-Owner  Borrowings-MDO    Tax Sheet
+           ┌────────┐        ┌────────┐       ┌────────┐
+           │ G13=D144│       │ G13=D148│      │ F14=IF │
+           │ G20=G8× │       │ G20=G8× │      │ (L6=   │
+           │   G13   │       │   G13   │      │ "Yes", │
+           │ ...     │       │ ...     │      │  0,    │
+           │ G96=Tot │       │ G96=Tot │      │  tax)  │
+           │ Interest│       │ Interest│      └────┬───┘
+           └────┬────┘       └────┬────┘           │
+                │                 │                │
+         ┌──────┼──────┐         │          ┌─────┼─────┐
+         ▼      ▼      ▼         ▼          ▼           ▼
+    Owner     P&L     P&L     MDO CAPEX    P&L          CF
+    CAPEX!  Interest  !G31    IDC row     !G35          !F11
+    E25       =-BO!              =-BM!     =-Tax!       =-Tax!
+    =BO!G96   G96                G96       F14          F14
+         │      │                │          │           │
+         ▼      ▼                ▼          ▼           ▼
+    Owner    P&L EBT           MDO CAPEX   P&L PAT     CF Project
+    CAPEX    =EBIT-Int         Total       =EBT-Tax    Cashflow
+    Total    G33=G29+G31                   G37=G33+G35 F14=F7+F12
+         │      │                              │           │
+         ▼      ▼                              ▼           ▼
+    CF Capex P&L Tax         CF Equity:     CF Equity:
+    F10=-DO! G35=-Tax!F14    F31=-Tax!F14   F32=P&L!G31
+    H35                     F33=-BO!G24     F36=Equity CF
+                             F26=BO!G23     
+                                            ▼
+                                       IRR, NPV, Payback
+
+
+================================================================================
+SECTION 9 – SUMMARY: WHAT CHANGES WHEN L6 SWITCHES
+================================================================================
+
+Parameter / Output              │ L6="Yes"        │ L6="No"
+────────────────────────────────┼─────────────────┼──────────────────
+Owner Debt %                    │ 0% (all equity) │ 30% debt, 70% eq
+MDO Debt %                      │ 0% (all equity) │ 70% debt, 30% eq
+Borrowings-Owner borrowings     │ 0               │ Calculated
+Borrowings-MDO borrowings       │ 0               │ Calculated
+Interest During Construction    │ 0               │ Calculated
+(IDC in Owner CAPEX row 25)     │                 │
+P&L Interest expense            │ 0               │ From BO!G96
+Normal Tax                      │ 0               │ 25.17% × EBT
+P&L PAT                         │ = EBIT          │ = EBT - Tax
+CSR                             │ 2% of EBIT      │ 2% of PAT
+Owner CAPEX Total               │ Lower (no IDC)  │ Higher (incl IDC)
+Project CF Taxes                │ 0               │ Tax outflow
+Equity CF Borrowings inflow     │ 0               │ Debt inflows
+Equity CF Interest outflow      │ 0               │ Interest payments
+Equity CF Repayment outflow     │ 0               │ Loan repayments
+Project IRR                     │ Higher           │ Lower
+Equity IRR                      │ = Project IRR    │ ≠ Project IRR
+                                │                 │ (leverage effect)
+
+
+================================================================================
+SECTION 10 – IMPLEMENTATION GUIDE FOR WEB APP BACKEND
+================================================================================
+
+To implement the Pre-Tax/Pre-Finance switch in calculate_tem.py:
+
+1. DEBT SCHEDULE CALCULATION (when L6="No"):
+   For each year:
+     debt_pct = 0.30 (Owner) or 0.70 (MDO)
+     interest_rate = 0.10
+     moratorium = 5 years
+     payback = 7 years
+     
+     capex_for_borrowing = initial_capex_total (from Depreciation-Owner!H23)
+     new_borrowing = capex_for_borrowing × debt_pct
+     
+     Track: opening_balance, new_borrowing, repayments, interest, closing_balance
+     Repayment: Each year's borrowing / 7, starting after moratorium period
+     Interest: (opening - repayment) × rate + new_borrowing × rate × 0.5 + repayment × rate × 0.5
+
+2. IDC (Interest During Construction):
+   idc_per_year = total_interest_cost (from borrowings schedule)
+   Add IDC to Owner CAPEX Initial (row 25)
+   This changes the Owner CAPEX Total
+
+3. TAX CALCULATION (when L6="No"):
+   tax_rate = 0.2517
+   For each year:
+     ebidta = revenue - operating_cost
+     depreciation = from Depreciation-Owner!H114 (straight-line)
+     interest = from Borrowings-Owner!G96
+     ebt = ebidta - depreciation - interest
+     normal_tax = MAX(0, ebt × tax_rate)
+
+4. P&L CALCULATION:
+   realisation = revenue
+   operating_cost = project_opex_total
+   ebidta = realisation - operating_cost
+   depreciation = -(Depreciation-Owner total)
+   salvage_value = (end-of-life asset recovery)
+   ebit = ebidta + depreciation + salvage_value
+   interest = -(Borrowings-Owner total interest)  [0 if L6="Yes"]
+   ebt = ebit + interest
+   tax = -(Tax normal tax)  [0 if L6="Yes"]
+   pat = ebt + tax
+   csr = -MAX(0, pat × 0.02)
+   pat_after_csr = pat + csr
+
+5. CASH FLOW – PROJECT:
+   inflow = realisation
+   outflow = -(operating_cost + capex + tax)  [tax=0 if L6="Yes"]
+   project_cf = inflow + outflow
+   project_irr = IRR(project_cf series)
+   project_npv = NPV(0.10, project_cf series)
+
+6. CASH FLOW – EQUITY:
+   inflow = realisation + borrowings  [borrowings=0 if L6="Yes"]
+   outflow = -(operating_cost + capex + tax + interest + repayments)
+   equity_cf = inflow + outflow
+   equity_irr = IRR(equity_cf series)
+   equity_npv = NPV(0.10, equity_cf series)
+
+7. LEVELIZED COSTS:
+   levelized_opex = NPV(0.10, opex_series) × 10 / NPV(0.10, production_series)
+   levelized_capex = NPV(0.10, capex_series)
+
+
+================================================================================
+SECTION 11 – CURRENT STATE IN calculate_tem.py
+================================================================================
+
+Currently in calculate_tem.py (line 701):
+  owner_idc = 0.0   ← HARDCODED TO ZERO
+
+This means the Pre-Tax/Pre-Finance switch is NOT yet functional:
+- All 16 scenarios have identical CAPEX (no IDC difference)
+- No tax calculations exist
+- No debt/borrowing schedules are computed
+- P&L, CF, IRR, NPV are not calculated
+- The "Yes"/"No" switch changes only the scenario key, not the values
+
+TO MAKE FUNCTIONAL:
+1. Add borrowings calculation when pre_tax_pre_finance == "No"
+2. Calculate IDC from borrowings and add to Owner CAPEX
+3. Add depreciation calculation (straight-line)
+4. Add tax calculation (25.17% on positive EBT)
+5. Compute P&L (Revenue → EBIDTA → EBIT → EBT → PAT)
+6. Compute CF (Project and Equity cashflows)
+7. Calculate IRR, NPV, Payback
+8. Store all new results in MongoDB scenario documents
+9. Display in Dashboard with appropriate switches
+
+
+================================================================================
+END OF DOCUMENT
+================================================================================
