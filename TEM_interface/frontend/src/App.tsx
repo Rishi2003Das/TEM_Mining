@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import { Dashboard } from "./pages/Dashboard";
 import { AdminPage } from "./pages/AdminPage";
-import logoImg from "./assets/Logo.jpeg";
+import logoImg from "./assets/srk-logo-06-feb-2020.webp";
 
 function App() {
   return (
