@@ -4,8 +4,8 @@ FROM node:18-slim
 # Install Python 3 and pip
 RUN apt-get update && apt-get install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
 
-# Install pymongo globally inside the container
-RUN pip3 install --break-system-packages pymongo
+# Install pymongo and numpy globally inside the container
+RUN pip3 install --break-system-packages pymongo numpy
 
 WORKDIR /app
 
