@@ -136,14 +136,14 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ minWidth: "240px", position: "sticky", left: 0, background: "var(--bg-surface)", zIndex: 3 }}>
+              <th style={{ minWidth: "240px", position: "sticky", left: 0, background: "var(--bg-secondary)", zIndex: 3 }}>
                 Parameter
               </th>
               <th>Unit</th>
               <th style={{ textAlign: "right", fontWeight: 600 }}>LOM Total/Avg</th>
               {years.map((yr) => (
                 <th key={yr} style={{ textAlign: "right", minWidth: "75px" }}>
-                  Yr {yr}
+                   Yr {yr}
                 </th>
               ))}
             </tr>
@@ -158,11 +158,11 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
                       style={{ 
                         position: "sticky", 
                         left: 0, 
-                        background: "var(--bg-surface-elevated)", 
+                        background: "var(--bg-tertiary)", 
                         zIndex: 2,
                         padding: "0.5rem 0.75rem",
-                        color: "var(--primary-color)",
-                        borderBottom: "1px solid var(--border-color)",
+                        color: "var(--accent-primary)",
+                        borderBottom: "var(--border-subtle)",
                         fontSize: "0.75rem",
                         fontWeight: 600,
                         letterSpacing: "0.08em",
@@ -198,7 +198,7 @@ export function ProductionScheduleTable({ scenario }: ProductionScheduleTablePro
                   <td style={{ 
                     position: "sticky", 
                     left: 0, 
-                    background: "var(--bg-surface)", 
+                    background: "var(--bg-secondary)", 
                     zIndex: 2,
                     fontWeight: isSubItem ? 400 : 500,
                     paddingLeft: isSubItem ? "1.5rem" : "0.75rem"

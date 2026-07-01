@@ -180,7 +180,7 @@ export function AdminPage() {
 
       <form onSubmit={handleUpload} className="admin-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "var(--space-lg)" }}>
         {/* Project Metadata Section */}
-        <div className="glass-card" style={{ padding: "var(--space-xl)" }}>
+        <div className="glass-card">
           <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "var(--space-md)", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "10px" }}>
             📋 Project Credentials
           </h3>
@@ -194,6 +194,7 @@ export function AdminPage() {
                 <input
                   type="text"
                   className="admin-field__input"
+                  style={{ width: "100%", textAlign: "left", fontSize: "0.9rem", padding: "10px 14px" }}
                   placeholder="e.g. TEM-2026-001"
                   required
                   value={projectDetails.projectId}
@@ -207,6 +208,7 @@ export function AdminPage() {
                 <input
                   type="text"
                   className="admin-field__input"
+                  style={{ width: "100%", textAlign: "left", fontSize: "0.9rem", padding: "10px 14px" }}
                   placeholder="Manager name"
                   value={projectDetails.projectManager}
                   onChange={(e) => setProjectDetails({ ...projectDetails, projectManager: e.target.value })}
@@ -219,6 +221,7 @@ export function AdminPage() {
                 <input
                   type="text"
                   className="admin-field__input"
+                  style={{ width: "100%", textAlign: "left", fontSize: "0.9rem", padding: "10px 14px" }}
                   placeholder="Client name"
                   value={projectDetails.clientCompany}
                   onChange={(e) => setProjectDetails({ ...projectDetails, clientCompany: e.target.value })}
@@ -230,7 +233,7 @@ export function AdminPage() {
                 <label className="admin-field__label" style={{ display: "block", marginBottom: "6px", fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8" }}>Project Description</label>
                 <textarea
                   className="admin-field__input"
-                  style={{ minHeight: "100px", fontFamily: "inherit", resize: "vertical" }}
+                  style={{ width: "100%", textAlign: "left", fontSize: "0.9rem", padding: "10px 14px", minHeight: "100px", fontFamily: "inherit", resize: "vertical" }}
                   placeholder="Describe the scope, options, and key aspects of this project..."
                   value={projectDetails.projectDescription}
                   onChange={(e) => setProjectDetails({ ...projectDetails, projectDescription: e.target.value })}
@@ -245,7 +248,7 @@ export function AdminPage() {
         </div>
 
         {/* Excel Upload Section */}
-        <div className="glass-card" style={{ padding: "var(--space-xl)" }}>
+        <div className="glass-card">
           <h3 style={{ fontSize: "1.15rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "var(--space-md)", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "10px" }}>
             📂 TEM Workbook File
           </h3>
@@ -254,17 +257,7 @@ export function AdminPage() {
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={() => !uploading && fileInputRef.current?.click()}
-            style={{
-              border: "2px dashed rgba(99, 102, 241, 0.35)",
-              borderRadius: "12px",
-              padding: "var(--space-xl)",
-              textAlign: "center",
-              cursor: uploading ? "not-allowed" : "pointer",
-              background: "rgba(30, 41, 59, 0.25)",
-              transition: "border-color 0.25s, background-color 0.25s",
-            }}
-            onMouseEnter={(e) => !uploading && (e.currentTarget.style.borderColor = "var(--accent-primary)")}
-            onMouseLeave={(e) => !uploading && (e.currentTarget.style.borderColor = "rgba(99, 102, 241, 0.35)")}
+            className={`admin-dropzone ${uploading ? "admin-dropzone--disabled" : ""}`}
           >
             <input
               type="file"
@@ -307,12 +300,12 @@ export function AdminPage() {
         )}
 
         {/* Upload Button */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "var(--space-xs)" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "var(--space-xs)", flexWrap: "wrap", gap: "8px" }}>
           <button
             type="submit"
             disabled={uploading || !excelFile}
             className="btn btn--primary"
-            style={{ padding: "12px 36px", fontSize: "0.95rem", fontWeight: 600 }}
+            style={{ padding: "12px 36px", fontSize: "0.95rem", fontWeight: 600, flex: "1 1 auto", maxWidth: "320px", minWidth: "180px" }}
           >
             {uploading ? "Processing Workbook..." : "🚀 Process & Recalculate Scenario"}
           </button>

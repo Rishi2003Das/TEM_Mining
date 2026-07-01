@@ -51,7 +51,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 
 export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaChartProps) {
   return (
-    <div className="glass-card" style={{ minHeight: 420 }}>
+    <div className="glass-card chart-container">
       <div className="glass-card__header">
         <div className="glass-card__title">
           <div className="glass-card__title-icon" style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>📉</div>
@@ -61,7 +61,7 @@ export function YearlyAreaChart({ data, showMdoContractor = false }: YearlyAreaC
           CAPEX: INR Cr | OPEX & Fees: ₹/ton
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={350}>
+      <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={data} margin={{ left: 10, right: 10, top: 10, bottom: 0 }}>
           <defs>
             <linearGradient id="gradCapex" x1="0" y1="0" x2="0" y2="1">

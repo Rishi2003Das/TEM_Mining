@@ -89,14 +89,14 @@ export function Dashboard() {
     <div>
       {/* Project Metadata Banner */}
       {projectMetadata && projectMetadata.projectId && (
-        <div className="glass-card animate-in" style={{ padding: "18px 24px", marginBottom: "var(--space-md)", borderLeft: "4px solid var(--accent-primary)" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+        <div className="glass-card animate-in project-banner" style={{ padding: "18px 24px", marginBottom: "var(--space-md)", borderLeft: "4px solid var(--accent-primary)" }}>
+          <div className="project-banner__row">
             <div>
               <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>Project ID</span>
               <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#f1f5f9", margin: "2px 0 0 0" }}>{projectMetadata.projectId}</h2>
             </div>
             
-            <div style={{ display: "flex", gap: "32px" }}>
+            <div className="project-banner__meta">
               {projectMetadata.projectManager && (
                 <div>
                   <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", display: "block" }}>Project Manager</span>
@@ -293,8 +293,8 @@ export function Dashboard() {
             </div>
             <div style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>All values in INR Crore</div>
           </div>
-          <div style={{ overflow: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <table style={{ width: "100%", minWidth: "340px", borderCollapse: "collapse", fontSize: "0.85rem" }}>
               <tbody>
                 {[
                   { label: "Revenue (Realisation)", value: kpis.lomRevenue, bold: false, color: "#10b981" },
@@ -357,12 +357,10 @@ export function Dashboard() {
           unit="₹/ton"
           title={isMDO ? "Owner OPEX (excl. MDO Contractor)" : "Owner OPEX Breakdown (LOM)"}
         />
-        <div style={isMDO ? { gridColumn: "span 2" } : undefined}>
-          <YearlyAreaChart
-            data={yearlyChartData}
-            showMdoContractor={isMDO}
-          />
-        </div>
+        <YearlyAreaChart
+          data={yearlyChartData}
+          showMdoContractor={isMDO}
+        />
       </div>
 
       {/* Production Schedule Section */}

@@ -770,6 +770,45 @@ body::before {
   font-size: 0.8rem;
 }
 
+/* ── Project Banner ────────────────────────────────────────────── */
+.project-banner__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.project-banner__meta {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+/* ── Admin Dropzone ────────────────────────────────────────────── */
+.admin-dropzone {
+  border: 2px dashed rgba(99, 102, 241, 0.35);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  text-align: center;
+  cursor: pointer;
+  background: rgba(30, 41, 59, 0.25);
+  transition: border-color var(--transition-base), background-color var(--transition-base);
+}
+
+.admin-dropzone:hover {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.admin-dropzone--disabled,
+.admin-dropzone--disabled:hover {
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: rgba(99, 102, 241, 0.2) !important;
+  background: rgba(30, 41, 59, 0.15) !important;
+}
+
 /* ── Animations ────────────────────────────────────────────────── */
 @keyframes fadeInUp {
   from {
@@ -798,22 +837,296 @@ body::before {
 .animate-in:nth-child(5) { animation-delay: 240ms; }
 
 /* ── Responsive ────────────────────────────────────────────────── */
+
+/* ─ 1024px: Large Tablet / Small Desktop ── */
+@media (max-width: 1024px) {
+  .app-main {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─ 768px: Tablet ── */
 @media (max-width: 768px) {
+  /* ── Header ── */
+  .app-header {
+    padding: var(--space-sm) var(--space-md);
+    gap: var(--space-sm);
+    flex-wrap: nowrap;
+  }
+
+  .app-header__logo {
+    flex: 1;
+    gap: var(--space-sm);
+  }
+
+  .app-header__logo img {
+    height: 32px !important;
+  }
+
+  .app-header__title {
+    font-size: 1rem;
+  }
+
+  .app-header__nav {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .app-header__nav a {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* ── Main Layout ── */
   .app-main {
     padding: var(--space-md);
   }
 
-  .switch-panel {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
+  /* ── KPI Grid ── */
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
   }
 
   .kpi-card__value {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
+  }
+
+  /* ── Switch Panel ── */
+  .switch-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-md);
+    padding: var(--space-md);
+  }
+
+  .switch-panel__title {
+    margin-right: 0;
+    margin-bottom: var(--space-xs);
+  }
+
+  .switch-group {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+  }
+
+  .switch-group__label {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+
+  .switch-toggle {
+    flex: 1;
+    justify-content: flex-end;
+    overflow-x: auto;
+  }
+
+  /* ── Section Headers ── */
+  .section-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .section-header__subtitle {
+    margin-left: 0;
+    width: 100%;
+    font-size: 0.75rem;
+  }
+
+  /* ── Charts Grid ── */
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .chart-container {
+    min-height: 320px;
+  }
+
+  /* ── Glass Card ── */
+  .glass-card {
+    padding: var(--space-md);
+  }
+
+  /* ── Admin inputs ── */
+  .admin-field__input {
+    width: 100%;
+    text-align: left;
+  }
+
+  .admin-header-actions {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+}
+
+/* ─ 480px: Mobile ── */
+@media (max-width: 480px) {
+  /* ── Header - full horizontal scroll prevention ── */
+  .app-header {
+    padding: 10px var(--space-sm);
+  }
+
+  .app-header__nav a {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
+
+  /* ── Main Layout ── */
+  .app-main {
+    padding: var(--space-sm);
+  }
+
+  /* ── KPI Grid — single column on smallest phones ── */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .kpi-card {
+    padding: var(--space-md);
+  }
+
+  .kpi-card__icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .kpi-card__value {
+    font-size: 1.1rem;
+  }
+
+  .kpi-card__label {
+    font-size: 0.7rem;
+  }
+
+  /* ── Switch Panel — vertical full stack ── */
+  .switch-panel {
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+  }
+
+  .switch-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .switch-group__label {
+    min-width: unset;
+  }
+
+  .switch-toggle {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .switch-toggle__option {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+    flex: 1;
+    text-align: center;
+  }
+
+  /* ── Section Header ── */
+  .section-header__bar {
+    width: 3px;
+    height: 22px;
+  }
+
+  .section-header__title {
+    font-size: 1rem;
+  }
+
+  /* ── Glass Card ── */
+  .glass-card {
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .glass-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+  }
+
+  /* ── Charts ── */
+  .chart-container {
+    min-height: 280px;
+  }
+
+  /* ── Data table ── */
+  .data-table {
+    font-size: 0.78rem;
+  }
+
+  .data-table thead th,
+  .data-table td {
+    padding: 6px 10px;
+  }
+
+  /* ── Password Gate ── */
+  .password-gate__card {
+    padding: var(--space-xl) var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.8rem;
+  }
+
+  /* ── Admin Dropzone Mobile ── */
+  .admin-dropzone {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  /* ── Project Banner Mobile ── */
+  .project-banner__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .project-banner__meta {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+}
+
+/* ─ 360px: Very small phones ── */
+@media (max-width: 360px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-header__logo img {
+    height: 26px !important;
+  }
+
+  .app-header__nav a {
+    padding: 5px 6px;
+    font-size: 0.65rem;
+  }
+
+  .kpi-card__value {
+    font-size: 1rem;
   }
 }
 
