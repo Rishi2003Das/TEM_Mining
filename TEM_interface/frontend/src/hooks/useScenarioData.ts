@@ -36,15 +36,27 @@ export function useScenarioData() {
     switches.coalMiningMachinery,
   ]);
 
+  // Fallback key without machinery suffix (for older database format)
+  const scenarioKeyFallback = useMemo(() => {
+    return `${switches.miningMode}_${switches.preTaxPreFinance}_${switches.coalPriceType}`;
+  }, [
+    switches.miningMode,
+    switches.preTaxPreFinance,
+    switches.coalPriceType,
+  ]);
+
   // Fetch scenario data
   const fetchScenario = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [scenarioRes, breakdownRes] = await Promise.all([
-        fetch(`${API_BASE}/scenarios/${scenarioKey}`),
-        fetch(`${API_BASE}/capex-breakdown`),
-      ]);
+      // Try the new key format first (with machinery suffix), fall back to old format
+      let scenarioRes = await fetch(`${API_BASE}/scenarios/${scenarioKey}`);
+      if (!scenarioRes.ok && scenarioRes.status === 404) {
+        scenarioRes = await fetch(`${API_BASE}/scenarios/${scenarioKeyFallback}`);
+      }
+      const breakdownRes = await fetch(`${API_BASE}/capex-breakdown`);
+
       if (!scenarioRes.ok) throw new Error("Failed to load scenario data");
       if (!breakdownRes.ok) throw new Error("Failed to load CAPEX breakdown");
 
@@ -58,7 +70,7 @@ export function useScenarioData() {
     } finally {
       setLoading(false);
     }
-  }, [scenarioKey]);
+  }, [scenarioKey, scenarioKeyFallback]);
 
   useEffect(() => {
     fetchScenario();
