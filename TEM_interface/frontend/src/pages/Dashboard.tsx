@@ -22,6 +22,7 @@ export function Dashboard() {
     yearlyChartData,
     kpis,
     scenario,
+    projectMetadata,
     refetch,
   } = useScenarioData();
 
@@ -86,6 +87,38 @@ export function Dashboard() {
 
   return (
     <div>
+      {/* Project Metadata Banner */}
+      {projectMetadata && projectMetadata.projectId && (
+        <div className="glass-card animate-in" style={{ padding: "18px 24px", marginBottom: "var(--space-md)", borderLeft: "4px solid var(--accent-primary)" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+            <div>
+              <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>Project ID</span>
+              <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#f1f5f9", margin: "2px 0 0 0" }}>{projectMetadata.projectId}</h2>
+            </div>
+            
+            <div style={{ display: "flex", gap: "32px" }}>
+              {projectMetadata.projectManager && (
+                <div>
+                  <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", display: "block" }}>Project Manager</span>
+                  <span style={{ fontSize: "0.9rem", color: "#e2e8f0", fontWeight: 600 }}>{projectMetadata.projectManager}</span>
+                </div>
+              )}
+              {projectMetadata.clientCompany && (
+                <div>
+                  <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", display: "block" }}>Client Company</span>
+                  <span style={{ fontSize: "0.9rem", color: "#e2e8f0", fontWeight: 600 }}>{projectMetadata.clientCompany}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          {projectMetadata.projectDescription && (
+            <p style={{ margin: "14px 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+              {projectMetadata.projectDescription}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Scenario Controls */}
       <ScenarioSwitches
         switches={switches}

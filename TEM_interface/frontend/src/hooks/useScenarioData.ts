@@ -22,6 +22,7 @@ export function useScenarioData() {
 
   const [scenario, setScenario] = useState<ScenarioData | null>(null);
   const [capexBreakdown, setCapexBreakdown] = useState<CapexBreakdown | null>(null);
+  const [projectMetadata, setProjectMetadata] = useState<{ projectId: string; projectManager: string; clientCompany: string; projectDescription: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,12 +51,18 @@ export function useScenarioData() {
     setLoading(true);
     setError(null);
     try {
-      // Try the new key format first (with machinery suffix), fall back to old format
-      let scenarioRes = await fetch(`${API_BASE}/scenarios/${scenarioKey}`);
-      if (!scenarioRes.ok && scenarioRes.status === 404) {
-        scenarioRes = await fetch(`${API_BASE}/scenarios/${scenarioKeyFallback}`);
-      }
-      const breakdownRes = await fetch(`${API_BASE}/capex-breakdown`);
+      // Parallel fetches for scenario, breakdown, and project credentials
+      const [scenarioRes, breakdownRes, metadataRes] = await Promise.all([
+        (async () => {
+          let res = await fetch(`${API_BASE}/scenarios/${scenarioKey}`);
+          if (!res.ok && res.status === 404) {
+            res = await fetch(`${API_BASE}/scenarios/${scenarioKeyFallback}`);
+          }
+          return res;
+        })(),
+        fetch(`${API_BASE}/capex-breakdown`),
+        fetch(`${API_BASE}/project-metadata`),
+      ]);
 
       if (!scenarioRes.ok) throw new Error("Failed to load scenario data");
       if (!breakdownRes.ok) throw new Error("Failed to load CAPEX breakdown");
@@ -63,8 +70,14 @@ export function useScenarioData() {
       const scenarioData: ScenarioData = await scenarioRes.json();
       const breakdownData: CapexBreakdown = await breakdownRes.json();
 
+      let metadataData = null;
+      if (metadataRes.ok) {
+        metadataData = await metadataRes.json();
+      }
+
       setScenario(scenarioData);
       setCapexBreakdown(breakdownData);
+      setProjectMetadata(metadataData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -306,7 +319,7 @@ export function useScenarioData() {
 
     return years.map((yr) => {
       const coalProd = scenario.results.production_schedule?.coal_production?.[yr] || 0;
-      
+
       const ownerCapexRaw = scenario.results.capex.owner_total[yr] || 0;
       const ownerOpexRaw = scenario.results.opex.subtotal[yr] || 0;
       const govtFeesRaw = scenario.results.government.total_fees_with_mc_bank[yr] || 0;
@@ -368,6 +381,7 @@ export function useScenarioData() {
     setSwitches,
     scenario,
     capexBreakdown,
+    projectMetadata,
     loading,
     error,
     scenarioKey,

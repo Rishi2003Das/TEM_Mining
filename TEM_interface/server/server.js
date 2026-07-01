@@ -5,7 +5,8 @@ const { MongoClient } = require("mongodb");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const MONGO_URI = process.env.MONGODB_URI;
 const DB_NAME = process.env.DATABASE_NAME || "tem";
@@ -394,6 +395,69 @@ app.post("/api/admin/remove-year", async (req, res) => {
     }
 
     res.json({ success: true, removedYear: maxYearStr });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/project-metadata — get saved project metadata
+app.get("/api/project-metadata", async (_req, res) => {
+  try {
+    const meta = await db.collection("project_metadata").findOne({}, { projection: { _id: 0 } });
+    res.json(meta || { projectId: "", projectManager: "", clientCompany: "", projectDescription: "" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/upload-excel — upload Excel and trigger worker
+const fs = require("fs");
+app.post("/api/admin/upload-excel", async (req, res) => {
+  const { fileContent, fileName, projectId, projectManager, clientCompany, projectDescription } = req.body;
+  
+  if (!fileContent) {
+    return res.status(400).json({ error: "Missing uploaded file content" });
+  }
+  
+  try {
+    // 1. Decode base64 to buffer
+    const buffer = Buffer.from(fileContent, "base64");
+    
+    // 2. Write to a temp file in the server directory
+    const tempPath = path.join(__dirname, "temp_upload.xlsx");
+    fs.writeFileSync(tempPath, buffer);
+    
+    // 3. Prepare env variables for worker.py
+    const env = {
+      ...process.env,
+      PROJECT_ID: projectId || "",
+      PROJECT_MANAGER: projectManager || "",
+      CLIENT_COMPANY: clientCompany || "",
+      PROJECT_DESCRIPTION: projectDescription || "",
+    };
+    
+    const workerPath = path.join(__dirname, "../worker.py");
+    console.log(`Running worker script on uploaded file: ${tempPath}`);
+    
+    // 4. Run worker.py
+    exec(`python3 "${workerPath}" "${tempPath}"`, { env }, (error, stdout, stderr) => {
+      // Clean up temp file
+      try {
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+      } catch (err) {
+        console.error("Failed to delete temp upload file:", err.message);
+      }
+      
+      if (error) {
+        console.error(`Worker error: ${error.message}`);
+        return res.status(500).json({ error: error.message, stderr, stdout });
+      }
+      
+      console.log("Worker completed successfully.");
+      res.json({ success: true, log: stdout });
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
