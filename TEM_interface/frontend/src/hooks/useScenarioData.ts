@@ -106,13 +106,11 @@ export function useScenarioData() {
       const dynamicHemmInitial = scenario.results.capex.hemm_initial
         ? sumYearly(scenario.results.capex.hemm_initial)
         : capexBreakdown.hemm_initial;
-      const dynamicHemmSustaining = scenario.results.capex.hemm_sustaining
-        ? sumYearly(scenario.results.capex.hemm_sustaining)
-        : capexBreakdown.hemm_replacement;
+
 
       components.push({
-        name: "HEMM (Initial + Replacement)",
-        value: dynamicHemmInitial + dynamicHemmSustaining,
+        name: "HEMM (Initial)",
+        value: dynamicHemmInitial,
       });
     }
 
@@ -156,7 +154,7 @@ export function useScenarioData() {
 
     // Contingency (15% of non-upfront items)
     const capexData = scenario.results.capex;
-    const totalOwner = sumYearly(capexData.owner_total);
+    const totalOwner = sumYearly(capexData.owner_initial);
     const itemSum = components.reduce((s, c) => s + c.value, 0);
     const contingency = totalOwner - itemSum;
     if (contingency > 0) {
@@ -182,14 +180,12 @@ export function useScenarioData() {
     const dynamicHemmInitial = scenario.results.capex.hemm_initial
       ? sumYearly(scenario.results.capex.hemm_initial)
       : capexBreakdown.hemm_initial;
-    const dynamicHemmSustaining = scenario.results.capex.hemm_sustaining
-      ? sumYearly(scenario.results.capex.hemm_sustaining)
-      : capexBreakdown.hemm_replacement;
+
 
     const components: { name: string; value: number }[] = [
       {
-        name: "HEMM (Initial + Replacement)",
-        value: dynamicHemmInitial + dynamicHemmSustaining,
+        name: "HEMM (Initial)",
+        value: dynamicHemmInitial,
       },
       {
         name: "Workshop and Store",
@@ -202,7 +198,7 @@ export function useScenarioData() {
     ];
 
     const capexData = scenario.results.capex;
-    const totalMdo = sumYearly(capexData.mdo_total);
+    const totalMdo = sumYearly(capexData.mdo_initial);
     const itemSum = components.reduce((s, c) => s + c.value, 0);
     const contingency = totalMdo - itemSum;
     if (contingency > 0) {
@@ -320,7 +316,7 @@ export function useScenarioData() {
     return years.map((yr) => {
       const coalProd = scenario.results.production_schedule?.coal_production?.[yr] || 0;
 
-      const ownerCapexRaw = scenario.results.capex.owner_total[yr] || 0;
+      const ownerCapexRaw = scenario.results.capex.owner_initial[yr] || 0;
       const ownerOpexRaw = scenario.results.opex.subtotal[yr] || 0;
       const govtFeesRaw = scenario.results.government.total_fees_with_mc_bank[yr] || 0;
       const mdoContractorRaw = scenario.results.opex.mdo_contractor[yr] || 0;
@@ -350,9 +346,9 @@ export function useScenarioData() {
       : 0;
 
     return {
-      totalOwnerCapex: sumYearly(capex.owner_total),
-      totalMdoCapex: sumYearly(capex.mdo_total),
-      totalProjectCapex: sumYearly(capex.project_total),
+      totalOwnerCapex: sumYearly(capex.owner_initial),
+      totalMdoCapex: sumYearly(capex.mdo_initial),
+      totalProjectCapex: sumYearly(capex.project_initial),
       totalOwnerOpex: lomCoalProd > 0 ? (sumYearly(opex.subtotal) / lomCoalProd) * 10 : 0,
       totalMdoContractor: lomCoalProd > 0 ? (sumYearly(opex.mdo_contractor) / lomCoalProd) * 10 : 0,
       totalGovtFees: lomCoalProd > 0 ? (sumYearly(govt.total_fees_with_mc_bank) / lomCoalProd) * 10 : 0,
