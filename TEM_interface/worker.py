@@ -3,6 +3,7 @@ import os
 import json
 import openpyxl
 import pymongo
+import datetime
 
 # Configuration
 CONNECTION_STRING = os.environ.get("MONGODB_URI", "mongodb+srv://rishikakalidas:KNris$0068@tem.khdmanp.mongodb.net/?appName=tem")
@@ -10,24 +11,73 @@ DATABASE_NAME = os.environ.get("DATABASE_NAME", "tem")
 
 # Hard input sheets mapping
 HARD_INPUT_MAPPING = {
-    "basic_consideration": {"start_row": 4, "end_row": 13, "json_file": "basic_consideration.json", "val_field": "Value"},
-    "working_regime": {"start_row": 16, "end_row": 29, "json_file": "working_regime.json", "val_field": "Values"},
-    "density_swell_factor": {"start_row": 32, "end_row": 35, "json_file": "density_swell_factor.json", "val_field": "Value"},
-    "salary_wages": {"start_row": 38, "end_row": 76, "json_file": "salary_wages.json", "val_field": "Annual CTC"},
-    "explosives": {"start_row": 80, "end_row": 88, "json_file": "explosives.json", "val_field": "Value"},
-    "unit_rates_opcosts": {"start_row": 96, "end_row": 106, "json_file": "unit_rates_opcosts.json", "val_field": "Base Rate"},
-    "maintainance_cost": {"start_row": 108, "end_row": 111, "json_file": "maintainance_cost.json", "val_field": "Base Rate"},
-    "operational_para": {"start_row": 113, "end_row": 118, "json_file": "operational_para.json", "val_field": "Values"},
-    "govt_fees_charges": {"start_row": 120, "end_row": 135, "json_file": "govt_fees_charges.json", "val_field": "Base Rate"},
-    "payment_assumption": {"start_row": 137, "end_row": 144, "json_file": "payment_assumption.json", "val_field": "Base Rate"},
-    "mdo_assumption": {"start_row": 147, "end_row": 153, "json_file": "mdo_assumption.json", "val_field": "Value"},
-    "safety_slope_stability": {"start_row": 156, "end_row": 158, "json_file": "safety_slope_stability.json", "val_field": "Value"}
+    "basic_consideration": {"json_file": "basic_consideration.json", "val_field": "Value"},
+    "working_regime": {"json_file": "working_regime.json", "val_field": "Values"},
+    "density_swell_factor": {"json_file": "density_swell_factor.json", "val_field": "Value"},
+    "salary_wages": {"json_file": "salary_wages.json", "val_field": "Annual CTC"},
+    "explosives": {"json_file": "explosives.json", "val_field": "Value"},
+    "unit_rates_opcosts": {"json_file": "unit_rates_opcosts.json", "val_field": "Base Rate"},
+    "maintainance_cost": {"json_file": "maintainance_cost.json", "val_field": "Base Rate"},
+    "operational_para": {"json_file": "operational_para.json", "val_field": "Values"},
+    "govt_fees_charges": {"json_file": "govt_fees_charges.json", "val_field": "Base Rate"},
+    "payment_assumption": {"json_file": "payment_assumption.json", "val_field": "Base Rate"},
+    "mdo_assumption": {"json_file": "mdo_assumption.json", "val_field": "Value"},
+    "safety_slope_stability": {"json_file": "safety_slope_stability.json", "val_field": "Value"}
+}
+
+# Section headers inside Assumptions_Dashboard
+SECTION_HEADERS = {
+    "basic_consideration": "Basic Considerations",
+    "working_regime": "Working Regime",
+    "density_swell_factor": "Density & Swell Factor",
+    "salary_wages": "Salary & Wages",
+    "explosives": "Explosives",
+    "unit_rates_opcosts": "Unit Rates and Operating Costs",
+    "maintainance_cost": "Maintenance Rate",
+    "operational_para": "Operational Parameters",
+    "govt_fees_charges": "Government Fees and charges",
+    "payment_assumption": "Payment related assumption",
+    "mdo_assumption": "MDO Assumption",
+    "safety_slope_stability": "Safety - slope stability monitoring"
 }
 
 YEAR_HEADERS = [-4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
-def parse_schedule_row(sheet, row_idx, description_col=2, unit_col=3, total_col=4, col_start=5, col_end=27):
-    description = sheet.cell(row_idx, description_col).value
+def find_row_by_label(sheet, label, col_idx=2, start_row=1, max_rows=1000, fuzzy=True):
+    target = label.strip().lower()
+    for r in range(start_row, max_rows + 1):
+        val = sheet.cell(r, col_idx).value
+        if val is not None:
+            val_str = str(val).strip().lower()
+            if fuzzy:
+                if target in val_str or val_str in target:
+                    return r
+            else:
+                if target == val_str:
+                    return r
+    return None
+
+def get_param_value(wb, sheet_name, search_label, target_col=4, search_col=2, fuzzy=True):
+    if sheet_name not in wb.sheetnames:
+        return None
+    sheet = wb[sheet_name]
+    row_idx = find_row_by_label(sheet, search_label, col_idx=search_col, fuzzy=fuzzy)
+    if row_idx is not None:
+        return sheet.cell(row_idx, target_col).value
+    return None
+
+def get_description_field_name(item):
+    # Description field is any key that is not metadata or value fields
+    ignored_keys = {"id", "key", "Unit", "Value", "Values", "Annual CTC", "Base Rate", "Basis", "Representative Price", "Operational Parameters"}
+    for k in item.keys():
+        if k not in ignored_keys:
+            return k
+    if "Operational Parameters" in item:
+        return "Operational Parameters"
+    return None
+
+def parse_schedule_row(sheet, row_idx, description_col=2, unit_col=3, total_col=4, col_start=5, col_end=27, item_override=None):
+    description = item_override or sheet.cell(row_idx, description_col).value
     if not description:
         return None
     
@@ -97,7 +147,7 @@ def main():
     hard_input_dir = os.path.join(script_dir, "Hard_Input")
     
     # 1. Parse and extract assumptions from 'Assumptions_Dashboard'
-    print("\nParsing 'Assumptions_Dashboard' for hard inputs...")
+    print("\nParsing 'Assumptions_Dashboard' for hard inputs dynamically...")
     dash_sheet = wb["Assumptions_Dashboard"]
     
     for collection_name, config in HARD_INPUT_MAPPING.items():
@@ -109,30 +159,56 @@ def main():
         with open(json_path, 'r', encoding='utf-8') as f:
             template_items = json.load(f)
             
+        section_header = SECTION_HEADERS.get(collection_name)
+        sec_start_row = 1
+        if section_header:
+            row_match = find_row_by_label(dash_sheet, section_header, col_idx=2, max_rows=300, fuzzy=True)
+            if row_match:
+                sec_start_row = row_match
+                
         updated_items = []
-        for i, item in enumerate(template_items):
-            row_idx = config["start_row"] + i
-            # Read cell value from column 4 (col D)
-            val = dash_sheet.cell(row_idx, 4).value
+        for item in template_items:
+            desc_field = get_description_field_name(item)
+            if not desc_field:
+                print(f"Warning: No description field found for item key: {item.get('key')}")
+                updated_items.append(item)
+                continue
+                
+            desc_val = str(item[desc_field]).strip()
             
-            # Format date if datetime
-            if isinstance(val, (int, float)):
-                # If percentage, keep as float/number
-                val = float(val)
-            elif val is None:
-                val = 0.0
-            elif hasattr(val, "strftime"): # datetime
-                val = val.strftime("%d-%b-%y")
+            # Find row index inside section
+            row_idx = None
+            for r in range(sec_start_row, min(sec_start_row + 60, 500)):
+                val_b = dash_sheet.cell(r, 2).value
+                if val_b and desc_val.lower().strip() in str(val_b).lower().strip():
+                    row_idx = r
+                    break
+                    
+            if row_idx is None:
+                # Fallback to scan entire sheet
+                row_idx = find_row_by_label(dash_sheet, desc_val, col_idx=2, max_rows=300, fuzzy=True)
+                
+            if row_idx is not None:
+                val = dash_sheet.cell(row_idx, 4).value
+                
+                # Format cell value
+                if isinstance(val, (int, float)):
+                    val = float(val)
+                elif val is None:
+                    val = 0.0
+                elif hasattr(val, "strftime"):  # datetime
+                    val = val.strftime("%d-%b-%y")
+                else:
+                    val = str(val).strip()
+                    try:
+                        val = float(val.replace(",", ""))
+                    except ValueError:
+                        pass
+                
+                item[config["val_field"]] = val
             else:
-                val = str(val).strip()
-                # Try to cast to float if numeric string
-                try:
-                    val = float(val.replace(",", ""))
-                except ValueError:
-                    pass
-            
-            # Update value field
-            item[config["val_field"]] = val
+                print(f"Warning: Label '{desc_val}' not found in Assumptions_Dashboard. Keeping default template value.")
+                
             updated_items.append(item)
             
         print(f"Upserting {len(updated_items)} items into collection '{collection_name}'...")
@@ -140,178 +216,272 @@ def main():
         if updated_items:
             db[collection_name].insert_many(updated_items)
             
-    # 2. Parse and extract 'production_schedule_params'
-    print("\nParsing production schedule parameters...")
-    prod_sched_sheet = wb["Production Schedule"]
-    
+    # 2. Parse and extract 'production_schedule_params' dynamically
+    print("\nParsing production schedule parameters dynamically...")
     params_json_path = os.path.join(hard_input_dir, "production_schedule_params.json")
     if os.path.exists(params_json_path):
         with open(params_json_path, 'r', encoding='utf-8') as f:
             params_template = json.load(f)
             
-        # Map parameters to specific cells
-        # format: key -> (sheet, cell_coord)
-        param_cell_mapping = {
-            "partings_percent": (prod_sched_sheet, "A11"),
-            "chp_rehandling_rate": (prod_sched_sheet, "A12"),
-            "chp_rehandling_capacity": (dash_sheet, "D32"),
-            "blasted_coal_fraction": (dash_sheet, "D81"),
-            "sm_threshold_year": (dash_sheet, "D80"),
-            "available_hours_per_year": (dash_sheet, "D29"),
-            "bench_height_coal": (prod_sched_sheet, "D30"),
-            "bench_width_coal": (prod_sched_sheet, "D31"),
-            "bench_height_ob_ib": (prod_sched_sheet, "D32"),
-            "bench_width_ob_ib": (prod_sched_sheet, "D33")
+        # Label search mapping: key -> (sheet_name, search_label, target_col, search_col, fuzzy)
+        param_search_mapping = {
+            "partings_percent": ("Production Schedule", "Partings", 1, 2, False),
+            "chp_rehandling_rate": ("Production Schedule", "Rehandling at CHP", 1, 2, False),
+            "chp_rehandling_capacity": ("Assumptions_Dashboard", "Average density of Coal", 4, 2, True),
+            "blasted_coal_fraction": ("Assumptions_Dashboard", "Blasting Requirement in coal through out life", 4, 2, True),
+            "sm_threshold_year": ("Assumptions_Dashboard", "Blasting Requirement 100% for how many years", 4, 2, True),
+            "available_hours_per_year": ("Assumptions_Dashboard", "Total available Hours", 4, 2, True),
+            "bench_height_coal": ("Production Schedule", "Bench Height - Coal", 4, 2, True),
+            "bench_width_coal": ("Production Schedule", "Bench Width - Coal", 4, 2, True),
+            "bench_height_ob_ib": ("Production Schedule", "Bench Height - OB/IB", 4, 2, True),
+            "bench_width_ob_ib": ("Production Schedule", "Bench Width - OB/IB", 4, 2, True)
         }
         
         for item in params_template:
             key = item.get("key")
-            if key in param_cell_mapping:
-                sheet_obj, cell_coord = param_cell_mapping[key]
-                val = sheet_obj[cell_coord].value
-                item["Value"] = float(val) if isinstance(val, (int, float)) else val
-                
+            if key in param_search_mapping:
+                sheet_name, search_label, target_col, search_col, fuzzy = param_search_mapping[key]
+                val = get_param_value(wb, sheet_name, search_label, target_col, search_col, fuzzy)
+                if val is not None:
+                    if isinstance(val, (int, float)):
+                        val = float(val)
+                    else:
+                        try:
+                            # Handle percentage string
+                            val = float(str(val).replace("%", "").strip())
+                            if "%" in str(get_param_value(wb, sheet_name, search_label, target_col, search_col, fuzzy) or ""):
+                                val = val / 100.0
+                        except ValueError:
+                            pass
+                    item["Value"] = val
+                else:
+                    print(f"Warning: Dynamic value for param '{key}' not found.")
+                    
         print(f"Upserting production_schedule_params...")
         db["production_schedule_params"].delete_many({})
         db["production_schedule_params"].insert_many(params_template)
 
-    # 3. Parse and extract schedules (year-by-year)
+    # 3. Parse and extract schedules dynamically (year-by-year)
     # A. Production Schedule
-    print("Parsing 'Production Schedule'...")
+    print("\nParsing 'Production Schedule' dynamically...")
+    prod_sched_sheet = wb["Production Schedule"]
+    PROD_SCHED_ROW_MAPPING = {
+        "total available hours excavation": "Total available Hours excavation",
+        "production coal/ore": "Production Coal/Ore",
+        "blasted coal/ore": "Blasted Coal/Ore",
+        "surface miner coal/ore": "Surface Miner Coal/Ore",
+        "waste (topsoil + overburden + interburden)": "Waste (Topsoil + Overburden + Interburden)",
+        "waste (topsoil + ob + partings)": "Waste (Topsoil + Overburden + Interburden)",
+        "top soil": "Topsoil",
+        "topsoil": "Topsoil",
+        "ob": "OB",
+        "partings": "Partings",
+        "rehandling at chp": "Rehandling at CHP",
+        "waste - rehandle": "Waste - Rehandle",
+        "gcv (adb)": "GCV (ADB)",
+        "relaive density (rd)": "Relaive Density (RD)",
+        "relative density": "Relaive Density (RD)",
+        "raw ash": "Raw ash",
+        "moisture": "Moisture",
+        "rom": "ROM",
+        "waste": "Waste",
+        "in-pit": "In-Pit",
+        "ex-pit": "Ex-Pit",
+        "rehandling": "Rehandling",
+        "bench height - coal": "Bench Height - Coal",
+        "bench width - coal": "Bench Width - Coal",
+        "bench height - ob/ib": "Bench Height - OB/IB",
+        "bench width - ob/ib": "Bench Width - OB/IB",
+        "rehandling cost": "Rehandling cost"
+    }
     prod_docs = []
-    prod_rows = [4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 23, 24, 25, 26, 27, 30, 31, 32, 33, 35]
-    for r in prod_rows:
-        doc = parse_schedule_row(prod_sched_sheet, r)
-        if doc:
-            prod_docs.append(doc)
-            
+    for r in range(1, 150):
+        val_b = prod_sched_sheet.cell(r, 2).value
+        if val_b:
+            key_b = str(val_b).strip().lower()
+            if key_b in PROD_SCHED_ROW_MAPPING:
+                std_name = PROD_SCHED_ROW_MAPPING[key_b]
+                # Avoid duplicate rows
+                if any(d["item"] == std_name for d in prod_docs):
+                    continue
+                doc = parse_schedule_row(prod_sched_sheet, r)
+                if doc:
+                    doc["item"] = std_name
+                    prod_docs.append(doc)
+                    
     # B. Pre-Operative
-    print("Parsing 'Pre-Operative'...")
+    print("Parsing 'Pre-Operative' dynamically...")
     pre_sheet = wb["Pre-Operative"]
     pre_docs = []
-    for r in range(5, 41):
-        description = pre_sheet.cell(r, 2).value
-        if not description:
-            continue
-        unit = pre_sheet.cell(r, 3).value
-        total_val = pre_sheet.cell(r, 5).value
-        yearly_values = {}
-        pre_years = [-4, -3, -2, -1]
-        for idx, yr in enumerate(pre_years):
-            val = pre_sheet.cell(r, 6 + idx).value
-            yearly_values[str(yr)] = float(val) if isinstance(val, (int, float)) else (0.0 if val is None else val)
-        for yr in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]:
-            yearly_values[str(yr)] = 0.0
+    header_row = find_row_by_label(pre_sheet, "Description", col_idx=2)
+    if header_row:
+        for r in range(header_row + 1, 200):
+            val_b = pre_sheet.cell(r, 2).value
+            if not val_b:
+                continue
+            val_b_str = str(val_b).strip().lower()
             
-        pre_docs.append({
-            "item": str(description).strip(),
-            "unit": str(unit).strip() if unit else "",
+            description = val_b
+            unit = pre_sheet.cell(r, 3).value
+            total_val = pre_sheet.cell(r, 5).value
+            
+            # Map pre-operative columns F to I for years -4 to -1
+            yearly_values = {}
+            pre_years = [-4, -3, -2, -1]
+            for idx, yr in enumerate(pre_years):
+                val = pre_sheet.cell(r, 6 + idx).value
+                yearly_values[str(yr)] = float(val) if isinstance(val, (int, float)) else (0.0 if val is None else val)
+            for yr in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]:
+                yearly_values[str(yr)] = 0.0
+                
+            pre_docs.append({
+                "item": str(description).strip(),
+                "unit": str(unit).strip() if unit else "",
+                "lom_total_or_average": float(total_val) if isinstance(total_val, (int, float)) else total_val,
+                "yearly_values": yearly_values
+            })
+            if val_b_str == "total":
+                break
+                
+    # C. Land
+    print("Parsing 'Land' dynamically...")
+    land_sheet = wb["Land"]
+    land_row = find_row_by_label(land_sheet, "Land Costs, (INR Crore)", col_idx=2, fuzzy=False)
+    land_docs = []
+    if land_row:
+        doc1 = parse_schedule_row(land_sheet, land_row, description_col=2, unit_col=2, total_col=3, col_start=4, col_end=26)
+        doc2 = parse_schedule_row(land_sheet, land_row + 1, description_col=2, unit_col=2, total_col=3, col_start=4, col_end=26, item_override="Land Cost Factor")
+        if doc1:
+            land_docs.append(doc1)
+        if doc2:
+            land_docs.append(doc2)
+            
+    # D. R&R
+    print("Parsing 'R&R' dynamically...")
+    rr_sheet = wb["R&R"]
+    rr_row = find_row_by_label(rr_sheet, "R&R", col_idx=2, fuzzy=False)
+    rr_docs = []
+    if rr_row:
+        doc1 = parse_schedule_row(rr_sheet, rr_row, description_col=2, unit_col=3, total_col=4, col_start=4, col_end=26)
+        doc2 = parse_schedule_row(rr_sheet, rr_row + 1, description_col=2, unit_col=3, total_col=4, col_start=4, col_end=26)
+        if doc1:
+            rr_docs.append(doc1)
+        if doc2:
+            rr_docs.append(doc2)
+            
+    # E. Coal Price
+    print("Parsing 'Coal Price' dynamically...")
+    cp_sheet = wb["Coal Price"]
+    cp_labels = ["GCV as per Mine Design", "NCI Price as per Mine Design Grade", "Market Price/Commercial Price of Coal"]
+    cp_docs = []
+    for label in cp_labels:
+        r = find_row_by_label(cp_sheet, label, col_idx=2)
+        if r:
+            doc = parse_schedule_row(cp_sheet, r, description_col=2, unit_col=3, total_col=4)
+            if doc:
+                cp_docs.append(doc)
+                
+    # F. Capex Breakups
+    print("Parsing 'Capex Breakups' dynamically...")
+    cb_sheet = wb["Capex Breakups"]
+    cb_header = find_row_by_label(cb_sheet, "Item", col_idx=2)
+    cb_docs = []
+    if cb_header:
+        for r in range(cb_header + 1, 100):
+            val_b = cb_sheet.cell(r, 2).value
+            if not val_b:
+                continue
+            if str(val_b).strip().lower() == "total":
+                break
+            doc = parse_schedule_row(cb_sheet, r, description_col=2, unit_col=3, total_col=3)
+            if doc:
+                cb_docs.append(doc)
+                
+    # G. Fleet
+    print("Parsing 'Fleet' dynamically...")
+    fleet_sheet = wb["Fleet"]
+    fleet_docs = []
+    for label in ["Total Initial Capital Requirement", "Total Replacement Capital Requirement"]:
+        r = find_row_by_label(fleet_sheet, label, col_idx=3)
+        if r:
+            description = fleet_sheet.cell(r, 3).value
+            unit = fleet_sheet.cell(r, 4).value
+            total_val = fleet_sheet.cell(r, 6).value
+            yearly_values = {}
+            for col_idx in range(7, 30):
+                year_name = str(YEAR_HEADERS[col_idx - 7])
+                val = fleet_sheet.cell(r, col_idx).value
+                yearly_values[year_name] = float(val) if isinstance(val, (int, float)) else 0.0
+
+            fleet_docs.append({
+                "item": str(description).strip(),
+                "unit": str(unit).strip() if unit else "",
+                "lom_total_or_average": float(total_val) if isinstance(total_val, (int, float)) else total_val,
+                "yearly_values": yearly_values
+            })
+            
+    # Wage-Owner
+    print("Parsing 'Wage-Owner' dynamically...")
+    wage_sheet = wb["Wage-Owner"]
+    r_wage = find_row_by_label(wage_sheet, "Total", col_idx=3)
+    wage_docs = []
+    if r_wage:
+        total_val = wage_sheet.cell(r_wage, 6).value
+        yearly_values = {}
+        for col_idx in range(10, 33):
+            year_name = str(YEAR_HEADERS[col_idx - 10])
+            val = wage_sheet.cell(r_wage, col_idx).value
+            yearly_values[year_name] = float(val) if isinstance(val, (int, float)) else 0.0
+
+        wage_docs.append({
+            "item": "Total Wages",
+            "unit": "INR Cr",
             "lom_total_or_average": float(total_val) if isinstance(total_val, (int, float)) else total_val,
             "yearly_values": yearly_values
         })
         
-    # C. Land
-    print("Parsing 'Land'...")
-    land_sheet = wb["Land"]
-    land_docs = []
-    for r in [5, 6]:
-        doc = parse_schedule_row(land_sheet, r, description_col=2, unit_col=2, total_col=3, col_start=4, col_end=26)
-        if doc:
-            if r == 6:
-                doc["item"] = "Land Cost Factor"
-            land_docs.append(doc)
-
-    # D. R&R
-    print("Parsing 'R&R'...")
-    rr_sheet = wb["R&R"]
-    rr_docs = []
-    for r in [6, 7]:
-        doc = parse_schedule_row(rr_sheet, r, description_col=2, unit_col=3, total_col=4, col_start=4, col_end=26)
-        if doc:
-            rr_docs.append(doc)
-
-    # E. Coal Price
-    print("Parsing 'Coal Price'...")
-    cp_sheet = wb["Coal Price"]
-    cp_docs = []
-    for r in [5, 7, 8]:
-        doc = parse_schedule_row(cp_sheet, r, description_col=2, unit_col=3, total_col=4)
-        if doc:
-            cp_docs.append(doc)
-
-    # F. Capex Breakups
-    print("Parsing 'Capex Breakups'...")
-    cb_sheet = wb["Capex Breakups"]
-    cb_docs = []
-    for r in range(4, 12):
-        doc = parse_schedule_row(cb_sheet, r, description_col=2, unit_col=3, total_col=3)
-        if doc:
-            cb_docs.append(doc)
-
-    # G. Fleet
-    print("Parsing 'Fleet'...")
-    fleet_sheet = wb["Fleet"]
-    fleet_docs = []
-    for r in [366, 413]:
-        description = fleet_sheet.cell(r, 3).value
-        unit = fleet_sheet.cell(r, 4).value
-        total_val = fleet_sheet.cell(r, 6).value
-        yearly_values = {}
-        for col_idx in range(7, 30):
-            year_name = str(YEAR_HEADERS[col_idx - 7])
-            val = fleet_sheet.cell(r, col_idx).value
-            yearly_values[year_name] = float(val) if isinstance(val, (int, float)) else 0.0
-
-        fleet_docs.append({
-            "item": str(description).strip(),
-            "unit": str(unit).strip() if unit else "",
-            "lom_total_or_average": float(total_val) if isinstance(total_val, (int, float)) else total_val,
-            "yearly_values": yearly_values
-        })
-
-    # Wage-Owner
-    print("Parsing 'Wage-Owner'...")
-    wage_sheet = wb["Wage-Owner"]
-    total_val = wage_sheet.cell(280, 6).value
-    yearly_values = {}
-    for col_idx in range(10, 33):
-        year_name = str(YEAR_HEADERS[col_idx - 10])
-        val = wage_sheet.cell(280, col_idx).value
-        yearly_values[year_name] = float(val) if isinstance(val, (int, float)) else 0.0
-
-    wage_docs = [{
-        "item": "Total Wages",
-        "unit": "INR Cr",
-        "lom_total_or_average": float(total_val) if isinstance(total_val, (int, float)) else total_val,
-        "yearly_values": yearly_values
-    }]
-
     # H. Government
-    print("Parsing 'Government'...")
+    print("Parsing 'Government' dynamically...")
     gov_sheet = wb["Government"]
     gov_docs = []
-    for r in range(4, 37):
-        doc = parse_schedule_row(gov_sheet, r, description_col=2, unit_col=3, total_col=4)
-        if doc:
-            gov_docs.append(doc)
-
-    # I. Owner OPEX
-    print("Parsing 'Owner OPEX'...")
-    owner_opex_sheet = wb["Owner OPEX"]
+    header_row_gov = find_row_by_label(gov_sheet, "Description", col_idx=2)
+    if header_row_gov:
+        empty_cnt = 0
+        for r in range(header_row_gov + 1, 200):
+            val_b = gov_sheet.cell(r, 2).value
+            if not val_b:
+                empty_cnt += 1
+                if empty_cnt > 3:
+                    break
+                continue
+            empty_cnt = 0
+            doc = parse_schedule_row(gov_sheet, r, description_col=2, unit_col=3, total_col=4)
+            if doc:
+                gov_docs.append(doc)
+                
+    # I. Owner OPEX & J. Project OPEX
     owner_opex_docs = []
-    for r in range(56, 93):
-        doc = parse_schedule_row(owner_opex_sheet, r, description_col=2, unit_col=3, total_col=4)
-        if doc:
-            owner_opex_docs.append(doc)
-
-    # J. Project OPEX
-    print("Parsing 'Project OPEX'...")
-    project_opex_sheet = wb["Project OPEX"]
     project_opex_docs = []
-    for r in range(59, 101):
-        doc = parse_schedule_row(project_opex_sheet, r, description_col=2, unit_col=3, total_col=4)
-        if doc:
-            project_opex_docs.append(doc)
+    
+    for op_name, op_sheet_name, op_list in [("Owner OPEX", "Owner OPEX", owner_opex_docs), ("Project OPEX", "Project OPEX", project_opex_docs)]:
+        print(f"Parsing '{op_name}' dynamically...")
+        op_sheet = wb[op_sheet_name]
+        header_row_op = find_row_by_label(op_sheet, "Description", col_idx=2)
+        if header_row_op:
+            for r in range(header_row_op + 1, 250):
+                val_b = op_sheet.cell(r, 2).value
+                if not val_b:
+                    continue
+                # Skip header groupings
+                val_c = op_sheet.cell(r, 3).value
+                val_d = op_sheet.cell(r, 4).value
+                if val_c is None and val_d is None:
+                    continue
+                doc = parse_schedule_row(op_sheet, r, description_col=2, unit_col=3, total_col=4)
+                if doc:
+                    op_list.append(doc)
+                if str(val_b).strip().lower() == "grand total":
+                    break
 
     # Save to DB
     db_mappings = {
@@ -335,7 +505,7 @@ def main():
         if docs:
             collection.insert_many(docs)
 
-    print("\nExcel data successfully imported to MongoDB.")
+    print("\nExcel data successfully imported to MongoDB dynamically.")
     
     # 4. Trigger calculate_tem.py
     print("Triggering recalculation...")
