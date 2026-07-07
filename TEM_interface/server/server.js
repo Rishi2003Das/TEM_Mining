@@ -2,11 +2,13 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
+const { exec } = require("child_process");
+const path = require("path");
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 const MONGO_URI = process.env.MONGODB_URI;
 const DB_NAME = process.env.DATABASE_NAME || "tem";
@@ -464,8 +466,6 @@ app.post("/api/admin/upload-excel", async (req, res) => {
 });
 
 // POST /api/recalculate — trigger calculate_tem.py recalculation
-const { exec } = require("child_process");
-const path = require("path");
 
 app.post("/api/recalculate", async (req, res) => {
   const scriptPath = path.join(__dirname, "../calculate_tem.py");
