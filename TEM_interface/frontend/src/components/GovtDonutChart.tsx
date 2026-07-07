@@ -20,23 +20,14 @@ function CustomTooltip({ active, payload, unit }: { active?: boolean; payload?: 
     const d = payload[0].payload;
     const isRsPerTon = unit?.includes("/ton") || unit?.includes("/t");
     return (
-      <div
-        style={{
-          background: "rgba(15, 23, 42, 0.95)",
-          backdropFilter: "blur(12px)",
-          border: "1px solid rgba(99, 102, 241, 0.2)",
-          borderRadius: "10px",
-          padding: "12px 16px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        }}
-      >
+      <div className="chart-tooltip">
         <div style={{ fontWeight: 600, marginBottom: 4, color: d.color }}>
           {d.name}
         </div>
-        <div style={{ fontSize: "0.85rem", color: "#f1f5f9" }}>
+        <div style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
           {isRsPerTon ? `₹ ${d.value.toFixed(2)} /ton` : `₹ ${formatCroreExact(d.value)} Cr`}
         </div>
-        <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
           {d.percentage}% of total
         </div>
       </div>

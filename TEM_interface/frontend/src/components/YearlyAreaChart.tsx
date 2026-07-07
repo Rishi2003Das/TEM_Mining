@@ -18,18 +18,8 @@ interface YearlyAreaChartProps {
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
   if (active && payload && payload.length) {
     return (
-      <div
-        style={{
-          background: "rgba(15, 23, 42, 0.95)",
-          backdropFilter: "blur(12px)",
-          border: "1px solid rgba(99, 102, 241, 0.2)",
-          borderRadius: "10px",
-          padding: "12px 16px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-          minWidth: 180,
-        }}
-      >
-        <div style={{ fontWeight: 600, marginBottom: 8, color: "#f1f5f9", fontSize: "0.85rem" }}>
+      <div className="chart-tooltip" style={{ minWidth: 180 }}>
+        <div style={{ fontWeight: 600, marginBottom: 8, color: "var(--text-primary)", fontSize: "0.85rem" }}>
           {label}
         </div>
         {payload.map((p, i) => {
@@ -37,7 +27,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
           return (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 3, fontSize: "0.8rem" }}>
               <span style={{ color: p.color }}>{p.name}</span>
-              <span style={{ color: "#f1f5f9", fontVariantNumeric: "tabular-nums" }}>
+              <span style={{ color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
                 {isCapex ? `₹ ${p.value.toFixed(1)} Cr` : `₹ ${p.value.toFixed(1)} /ton`}
               </span>
             </div>

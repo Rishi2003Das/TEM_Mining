@@ -1,3 +1,4 @@
+import { useParams } from "react-router-dom";
 import { useScenarioData } from "../hooks/useScenarioData";
 import { ScenarioSwitches } from "../components/ScenarioSwitches";
 import { KpiCard } from "../components/KpiCard";
@@ -10,6 +11,7 @@ import { ProductionScheduleTable } from "../components/ProductionScheduleTable";
 import { API_BASE } from "../types";
 
 export function Dashboard() {
+  const { projectId } = useParams<{ projectId?: string }>();
   const {
     switches,
     setSwitches,
@@ -25,6 +27,8 @@ export function Dashboard() {
     projectMetadata,
     refetch,
   } = useScenarioData();
+
+  const isProjectMatch = !projectId || (projectMetadata && projectMetadata.projectId.toLowerCase() === projectId.toLowerCase());
 
   if (loading) {
     return (
@@ -77,6 +81,23 @@ export function Dashboard() {
     );
   }
 
+  if (!isProjectMatch) {
+    return (
+      <div className="loading-state glass-card animate-in" style={{ maxWidth: "600px", margin: "10vh auto", padding: "var(--space-xl)", textAlign: "center" }}>
+        <div style={{ fontSize: "3.5rem", marginBottom: "var(--space-md)" }}>📁</div>
+        <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "var(--space-sm)" }}>
+          Project Dashboard Inactive
+        </h2>
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "var(--space-md)" }}>
+          The requested project **{projectId}** is currently in Draft status or has not been computed.
+        </p>
+        <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", lineHeight: 1.5 }}>
+          Please ask the system administrator to activate and run computations for this project in the Admin Panel to enable this shareable dashboard.
+        </p>
+      </div>
+    );
+  }
+
   const isPreTax = switches.preTaxPreFinance === "Yes";
   const isMDO = switches.miningMode === "MDO";
 
@@ -93,26 +114,26 @@ export function Dashboard() {
           <div className="project-banner__row">
             <div>
               <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>Project ID</span>
-              <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#f1f5f9", margin: "2px 0 0 0" }}>{projectMetadata.projectId}</h2>
+              <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--text-primary)", margin: "2px 0 0 0" }}>{projectMetadata.projectId}</h2>
             </div>
             
             <div className="project-banner__meta">
               {projectMetadata.projectManager && (
                 <div>
                   <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", display: "block" }}>Project Manager</span>
-                  <span style={{ fontSize: "0.9rem", color: "#e2e8f0", fontWeight: 600 }}>{projectMetadata.projectManager}</span>
+                  <span style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: 600 }}>{projectMetadata.projectManager}</span>
                 </div>
               )}
               {projectMetadata.clientCompany && (
                 <div>
                   <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em", display: "block" }}>Client Company</span>
-                  <span style={{ fontSize: "0.9rem", color: "#e2e8f0", fontWeight: 600 }}>{projectMetadata.clientCompany}</span>
+                  <span style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: 600 }}>{projectMetadata.clientCompany}</span>
                 </div>
               )}
             </div>
           </div>
           {projectMetadata.projectDescription && (
-            <p style={{ margin: "14px 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+            <p style={{ margin: "14px 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5, borderTop: "var(--border-subtle)", paddingTop: "10px" }}>
               {projectMetadata.projectDescription}
             </p>
           )}
