@@ -249,8 +249,19 @@ export function AdminPage() {
             })
           });
 
+          if (!response.ok) {
+            const errText = await response.text();
+            let errMsg = "Failed to process workbook";
+            try {
+              const errJson = JSON.parse(errText);
+              errMsg = errJson.error || errMsg;
+            } catch (_) {
+              errMsg = `${errMsg} (Status ${response.status}): ${errText.substring(0, 150)}`;
+            }
+            throw new Error(errMsg);
+          }
+
           const data = await response.json();
-          if (!response.ok) throw new Error(data.error || "Failed to process workbook");
 
           setConsoleLog((prev) => prev + (data.log || "Success.\n"));
           setUploadProgress("Processing completed successfully!");
@@ -343,8 +354,17 @@ export function AdminPage() {
         })
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to update parameter");
+      if (!response.ok) {
+        const errText = await response.text();
+        let errMsg = "Failed to update parameter";
+        try {
+          const errJson = JSON.parse(errText);
+          errMsg = errJson.error || errMsg;
+        } catch (_) {
+          errMsg = `${errMsg} (Status ${response.status}): ${errText.substring(0, 150)}`;
+        }
+        throw new Error(errMsg);
+      }
 
       // Update local state
       setHardInputs((prev: any) => {
